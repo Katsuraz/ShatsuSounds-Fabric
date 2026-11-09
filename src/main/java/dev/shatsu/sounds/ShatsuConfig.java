@@ -15,7 +15,7 @@ import java.util.HashSet;
 public final class ShatsuConfig {
     public static final String[] CATEGORIES = {
         "block_hit", "block_break", "block_place", "footsteps", "block_other",
-        "combat", "inventory", "movement", "environment", "interaction", "food", "magic", "other"
+        "combat", "inventory", "movement", "environment", "interaction", "food", "liquids", "animals", "magic", "other"
     };
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path PATH = FabricLoader.getInstance().getConfigDir().resolve("shatsu-sounds/profile.json");
@@ -28,6 +28,10 @@ public final class ShatsuConfig {
     public Map<String, Boolean> enabled = new HashMap<>();
     public Set<String> favorites = new HashSet<>();
     public boolean foodAudioEnabled = true;
+    public boolean drinkAudioEnabled = true;
+    public boolean specialMagicEnabled = true;
+    public boolean actionsBeyondCompatibility = true;
+    public boolean animalsPackEnabled = false;
     public boolean arrowWhooshEnabled = true;
     private ShatsuConfig() {}
     public static ShatsuConfig current() { return ACTIVE; }
@@ -65,7 +69,9 @@ public final class ShatsuConfig {
             if (id.endsWith(".place")) return "block_place";
             return "block_other";
         }
-        if (id.contains("experience_orb") || id.contains("levelup") || id.contains("totem")) return "magic";
+        if (id.contains("experience_orb") || id.contains("levelup") || id.contains("totem") || id.contains("preview.asmr.magic")) return "magic";
+        if (id.startsWith("drink.") || id.contains("bucket.")) return "liquids";
+        if (id.startsWith("animal.") || id.startsWith("preview.nature.")) return "animals";
         if (id.contains("shield")) return "combat";
         if (id.contains("inventory") || id.contains("typing") || id.contains("item_click") || id.contains("item_drag")) return "inventory";
         if (id.contains("step") || id.contains("landing") || id.contains("swim")) return "movement";
@@ -105,6 +111,8 @@ public final class ShatsuConfig {
             case "Immersive" -> { categoryVolumes.put("environment",1.1f);categoryVolumes.put("movement",1.1f); }
             case "Combat Focus" -> { categoryVolumes.put("combat",1.15f);categoryVolumes.put("inventory",.7f); }
             case "Minimal" -> { master=.75f;categoryVolumes.put("inventory",.55f); }
+            case "ASMR Woodland" -> { master=.92f; categoryVolumes.put("block_break",1.08f); categoryVolumes.put("animals",.78f);categoryVolumes.put("liquids",.96f);categoryVolumes.put("magic",.78f); }
+            case "Fantasy Whisper" -> { master=.86f; categoryVolumes.put("magic",.94f);categoryVolumes.put("combat",.78f);categoryVolumes.put("liquids",.91f); }
             default -> { }
         }
         save();
