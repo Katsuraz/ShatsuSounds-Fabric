@@ -1,17 +1,31 @@
-# Shatsu Sounds — Minecraft Fabric 26.3
+# Shatsu Sounds — Fabric 26.3
 
-Dedicated repository for the **Shatsu Satisfying Sounds** Minecraft mod. This is separate from the Shatsu music-sync app.
+**Source project under active development.** This is the dedicated Minecraft sound-manager repository and is **not** the unrelated Shatsu music-sync app.
 
-## Current status
+## Current repository state
 
-**Source import pending.** The complete v0.2 alpha source and bundled Shatsu v7.3 sound assets are prepared as `ShatsuSounds_Fabric_26.3_Source_Beta.zip` in the ChatGPT project conversation. They have **not** been uploaded or compiled here yet. No released or tested JAR exists.
+The Java source and Fabric/Mod Menu build configuration are committed in browsable source form. The GitHub Actions workflow attempts a Java 25 + Gradle/Fabric build.
 
-The source package contains Fabric Loom/Gradle configuration, a Mod Menu sound browser, mixer and presets, bundled resource mappings, asset-validation scripts and a GitHub Actions build workflow.
+**IMPORTANT:** The complete v7.3 audio bundle is **not committed**. A build artifact produced now is source/UI-only and does not contain the full Shatsu sound overhaul. **Do not announce a completed mod or create a stable release before in-game testing.**
 
-## Next step
+The preserved Shatsu v7.3 resource-pack audio is in a separate local project package. It must be imported under `src/main/resources/assets/**`, with the matching generated `src/main/resources/shatsu_catalog.json` (replacing the currently empty catalog). There are 3,511 files in the local prepared source archive, most of them short OGG samples.
 
-Upload the extracted source package to this repository (preserving the directory structure). The supplied `PUBLISH_TO_GITHUB.bat` script can publish it with Git for Windows. After the source is pushed, GitHub Actions will attempt to build the Java 25 / Minecraft 26.3 mod, with an artifact on successful compilation. Check the run logs before treating the artifact as working in Minecraft.
+## Work included so far
 
-## Sound design requirements
+- Fabric 26.3 + Java 25 Gradle build setup.
+- A Mod Menu configuration screen: dashboard, searchable events, audio preview, mixer, presets, diagnostic mod detection.
+- JSON configuration in `config/shatsu-sounds/profile.json`.
+- JSON-driven sound catalog with missing-asset detection.
+- A GitHub Actions compilation workflow that distinguishes UI-only builds from complete audio releases.
 
-Keep mob voices vanilla. Preserve user-approved inventory opening, drinking, fireworks and other approved sounds. Avoid duplicated effects with Clangor, Sounds and Custom Block Sounds. The mod must not silently modify third-party mod configurations. Audio sources and redistribution rights must be checked before public releases.
+## Work still required
+
+- Upload/import all v7.3 sound assets with their original licenses and attribution.
+- Verify every event and sample in a running Minecraft 26.3 client.
+- Add and test non-duplicating audio mixer hooks, contextual item triggers, inventory actions, keyboard typing and optional Clangor/Sounds/Custom Block Sounds integrations.
+- Implement the advanced sound-pack manager, import/export, and runtime diagnostics.
+- Publish a release only after compilation and testing.
+
+## Preserved audio design goals
+
+Keep vanilla mob voices, the approved inventory-opening ping and other approved sound changes. Ordinary-item attack hits should use soft hand-style impacts; retain distinctive effects for named weapons; avoid overpowering combat/explosion sounds. Respect other mods' settings, and never overwrite unrelated JARs.

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "shatsusounds",
+  "version": "${version}",
+  "name": "Shatsu Sounds",
+  "description": "The Shatsu sound profile manager for Minecraft 26.3",
+  "authors": [
+    "Katsuraz"
+  ],
+  "license": "LicenseRef-Shatsu-Audio-See-Docs",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "dev.shatsu.sounds.client.ShatsuClient"
+    ],
+    "modmenu": [
+      "dev.shatsu.sounds.client.ShatsuModMenu"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~26.3",
+    "java": ">=25"
+  },
+  "suggests": {
+    "modmenu": "*",
+    "clangor": "*",
+    "sound": "*",
+    "customblocksounds": "*"
+  }
+}
