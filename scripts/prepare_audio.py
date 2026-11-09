@@ -164,7 +164,7 @@ def generate_catalog(root):
                 category = 'inventory'
             elif any(v in event for v in ('attack', 'hit', 'weapon', 'mace', 'spear', 'trident', 'bow', 'shield')):
                 category = 'combat'
-            elif any(v in event for v in ('eat', 'drink', 'honey')):
+            elif event.startswith('food.') or any(v in event for v in ('eat', 'drink', 'honey')):
                 category = 'food'
             elif any(v in event for v in ('weather', 'rain', 'thunder', 'explode')):
                 category = 'environment'
