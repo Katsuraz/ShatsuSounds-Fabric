@@ -21,7 +21,18 @@ dependencies {
 // Resilient to a large ZIP: GitHub uploads just one archive, while the build
 // supplies the repaired resources to Minecraft from inside the mod JAR.
 def uploadedShatsuPack = file('Shatsu_Satisfying_Sounds_v7.3_SOFT_GENERIC_HITS_EXPLOSIONS_26.3.zip')
+// Restore the CC0 recordings uploaded in nine GitHub text blobs.
+tasks.register('assembleShatsuRecordedAudio', Exec) {
+    inputs.files(fileTree('audio/shatsu_v03') { include '*.b64' })
+    inputs.file(file('scripts/assemble_recorded_audio.py'))
+    outputs.file(layout.buildDirectory.file('generated/shatsu-v03-audio.zip'))
+    commandLine 'python3', 'scripts/assemble_recorded_audio.py',
+        layout.buildDirectory.file('generated/shatsu-v03-audio.zip').get().asFile.absolutePath
+}
 tasks.register('prepareShatsuAssets', Exec) {
+    dependsOn tasks.named('assembleShatsuRecordedAudio')
+    inputs.file(file('scripts/apply_recorded_audio.py'))
+    inputs.file(layout.buildDirectory.file('generated/shatsu-v03-audio.zip'))
     inputs.file(uploadedShatsuPack)
     inputs.file(file('scripts/prepare_audio.py'))
     inputs.file(file('scripts/polish_audio.py'))
