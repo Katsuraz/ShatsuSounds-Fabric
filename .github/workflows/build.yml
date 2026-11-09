@@ -41,8 +41,11 @@ jobs:
               assert any(n.endswith('.ogg') for n in names)
               print('Validated', len(names), 'sound-pack entries')
           PY
-      - name: Confirm FFmpeg hit-audio tooling
-        run: ffmpeg -version | head -1
+      - name: Install FFmpeg for hit-volume normalization
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          ffmpeg -version | head -1
       - name: Build the mod with repaired Shatsu audio
         run: gradle build --stacktrace
       - name: Test block hits and non-special item fallback
