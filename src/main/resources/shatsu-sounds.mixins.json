@@ -4,7 +4,9 @@
   "package": "dev.shatsu.sounds.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
-    "SoundEngineMixin"
+    "SoundEngineMixin",
+    "ShatsuConsumableSoundMixin",
+    "ShatsuRemoteFoodSoundMixin"
   ],
   "injectors": {
     "defaultRequire": 0

@@ -9,6 +9,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 
 public final class ShatsuConfig {
     public static final String[] CATEGORIES = {
@@ -24,6 +26,9 @@ public final class ShatsuConfig {
     public Map<String, Float> eventVolumes = new HashMap<>();
     public Map<String, Float> eventPitches = new HashMap<>();
     public Map<String, Boolean> enabled = new HashMap<>();
+    public Set<String> favorites = new HashSet<>();
+    public boolean foodAudioEnabled = true;
+    public boolean arrowWhooshEnabled = true;
     private ShatsuConfig() {}
     public static ShatsuConfig current() { return ACTIVE; }
     public static synchronized void load() {
@@ -35,6 +40,7 @@ public final class ShatsuConfig {
                     if (result.eventVolumes == null) result.eventVolumes = new HashMap<>();
                     if (result.eventPitches == null) result.eventPitches = new HashMap<>();
                     if (result.enabled == null) result.enabled = new HashMap<>();
+                    if (result.favorites == null) result.favorites = new HashSet<>();
                     ACTIVE = result;
                 }
             } else save();
@@ -59,12 +65,12 @@ public final class ShatsuConfig {
             if (id.endsWith(".place")) return "block_place";
             return "block_other";
         }
-        if (id.contains("experience_orb") || id.contains("totem")) return "magic";
+        if (id.contains("experience_orb") || id.contains("levelup") || id.contains("totem")) return "magic";
         if (id.contains("shield")) return "combat";
         if (id.contains("inventory") || id.contains("typing") || id.contains("item_click") || id.contains("item_drag")) return "inventory";
         if (id.contains("step") || id.contains("landing") || id.contains("swim")) return "movement";
         if (id.contains("attack") || id.contains("hit") || id.contains("mace") || id.contains("weapon") || id.contains("trident") || id.contains("bow") || id.contains("spear")) return "combat";
-        if (id.contains("eat") || id.contains("drink") || id.contains("honey")) return "food";
+        if (id.startsWith("food.") || id.contains("eat") || id.contains("drink") || id.contains("honey")) return "food";
         if (id.contains("rain") || id.contains("thunder") || id.contains("explode") || id.contains("wind_burst")) return "environment";
         if (id.contains("open") || id.contains("close") || id.contains("click") || id.contains("door")) return "interaction";
         return "other";
@@ -82,6 +88,12 @@ public final class ShatsuConfig {
     public void setEnabled(String id,boolean value) { enabled.put(id,value);save(); }
     public void setPitch(String id,float value) { eventPitches.put(id,Math.max(.5f,Math.min(2f,value)));save(); }
     public void resetEvent(String id) { enabled.remove(id);eventVolumes.remove(id);eventPitches.remove(id);save(); }
+    public boolean isFavorite(String id) { return favorites != null && favorites.contains(id); }
+    public void toggleFavorite(String id) {
+        if (favorites == null) favorites = new HashSet<>();
+        if (!favorites.add(id)) favorites.remove(id);
+        save();
+    }
     public void resetMixer() { master=1f;categoryVolumes.clear();eventVolumes.clear();eventPitches.clear();save(); }
     public void applyPreset(String name) {
         preset = name;
