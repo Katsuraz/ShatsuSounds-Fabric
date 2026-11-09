@@ -187,11 +187,14 @@ def polish(root):
         clangor["swing.trident"] = {"replace": True, "sounds": sounds("weapons/trident_throw", 3, 0.35)}
     cpath.write_text(json.dumps(clangor, ensure_ascii=False, indent=2) + "\n", encoding="utf8")
 
+    from placement_polish import replace_placement
+    replace_placement(root)
+
     ns = root / "assets/shatsupolish/sounds.json"
     ns.write_text(json.dumps({
         "shield.raise": {"sounds": sounds("weapons/shield_raise", 2, 0.63)}
     }, indent=2) + "\n", encoding="utf8")
-    print(f"Shatsu polish: {changed_wood} wood break entries; {place_events} vanilla place events; {count} blockmap place levels; 23 new original OGG sounds.")
+    print(f"Shatsu polish: {changed_wood} wood break entries; {place_events} vanilla place events; {count} blockmap place levels; 23 magic/weapon and 66 material placement OGGs.")
 
 if __name__ == "__main__":
     import sys
