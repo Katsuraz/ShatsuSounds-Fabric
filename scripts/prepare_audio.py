@@ -174,6 +174,8 @@ def main():
     patch_generic_hits(root)
     from polish_audio import polish
     polish(root)
+    from apply_recorded_audio import update as apply_recorded
+    apply_recorded(root, Path(__file__).resolve().parents[1] / 'build/generated/shatsu-v03-audio.zip')
     count = generate_catalog(root)
     validate(root)
     print(f'Shatsu repair: {raised}/{processed} quiet hit OGGs normalized; '
