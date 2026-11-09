@@ -7,6 +7,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
@@ -22,7 +23,7 @@ public final class ShatsuInventoryAudio {
 
     public static int interactions() { return interactions; }
 
-    public static void clicked(Slot slot, ItemStack carried, ContainerInput type) {
+    public static void clicked(Slot slot, ItemStack carried, ContainerInput type, int mouseButton) {
         ShatsuConfig cfg = ShatsuConfig.current();
         if (!cfg.inventoryAudioEnabled || type == null) return;
         ItemStack target = slot == null ? ItemStack.EMPTY : slot.getItem();
@@ -30,11 +31,12 @@ public final class ShatsuInventoryAudio {
         if (target.isEmpty() && carried.isEmpty()) return;
         // QUICK_CRAFT is repeatedly called for each slot while dragging;
         // one gentle final interaction is preferable to a sound flood.
-        if (type == ContainerInput.QUICK_CRAFT) return;
+        if (type == ContainerInput.QUICK_CRAFT &&
+                AbstractContainerMenu.getQuickcraftHeader(mouseButton) != 2) return;
         String action = switch (type) {
             case PICKUP -> carried.isEmpty() ? "pickup" :
                     (target.isEmpty() ? "place" : "swap");
-            case QUICK_MOVE -> "transfer";
+            case QUICK_MOVE, QUICK_CRAFT -> "transfer";
             case SWAP -> "swap";
             case PICKUP_ALL -> "transfer";
             case CLONE -> "pickup";
