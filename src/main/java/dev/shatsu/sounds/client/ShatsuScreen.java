@@ -5,6 +5,9 @@ import dev.shatsu.sounds.ShatsuConfig;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.AbstractSliderButton;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import java.util.function.DoubleConsumer;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -42,7 +45,7 @@ public final class ShatsuScreen extends Screen {
     private void tab(int selected) { tab = selected; page = 0; refresh(); }
     @Override protected void init() {
         int x = panelX(), w = panelWidth();
-        action(x, 10, w, 22, "SHATSU  /  SOUND STUDIO     26.3", () -> tab(0));
+        // The header is painted as typography instead of an inert giant button.
         int navW = (w - 8) / 5;
         for (int i = 0; i < TABS.length; i++) {
             final int selected = i;
@@ -139,49 +142,39 @@ public final class ShatsuScreen extends Screen {
     }
     private void mixer(int x, int y, int w) {
         ShatsuConfig cfg = ShatsuConfig.current();
-        int half = Math.max(50, (w - 96) / 2);
-        action(x, y, half, 22, "MASTER", () -> {cfg.master = 1f; ShatsuConfig.save(); refresh();});
-        action(x + half + 3, y, 28, 22, "-", () -> {
-            cfg.master = ShatsuConfig.clamp(cfg.master - .1f); ShatsuConfig.save(); refresh();
-        });
-        action(x + half + 34, y, w - half - 72, 22,
-            Math.round(cfg.master * 100) + "%", () -> {
-                cfg.master = 1f; ShatsuConfig.save(); refresh();
-            });
-        action(x + w - 35, y, 35, 22, "+", () -> {
-            cfg.master = ShatsuConfig.clamp(cfg.master + .1f); ShatsuConfig.save(); refresh();
+        addRenderableWidget(new ShatsuLevelSlider(x, y, w - 92, "MASTER VOLUME",
+                cfg.master, v -> cfg.master = (float) v));
+        action(x + w - 88, y, 88, 20, "Reset", () -> {
+            cfg.master = 1f; ShatsuConfig.save(); refresh();
         });
         String[] cats = ShatsuConfig.CATEGORIES;
-        int visible = Math.max(1, Math.min(6, (height - y - 90) / 28));
+        int visible = Math.max(1, Math.min(6, (height - y - 89) / 28));
         int endPage = Math.max(0, (cats.length - 1) / visible);
         mixerPage = Math.min(mixerPage, endPage);
-        for (int j = 0; j < visible; j++) {
-            int index = mixerPage * visible + j;
+        for (int i = 0; i < visible; i++) {
+            int index = mixerPage * visible + i;
             if (index >= cats.length) break;
-            String category = cats[index];
-            int row = y + 29 + j * 28;
-            float level = cfg.categoryVolumes.getOrDefault(category, 1f);
-            action(x, row, w - 143, 23, category.replace('_', ' ').toUpperCase(Locale.ROOT),
-                () -> {cfg.setCategory(category, 1f); refresh();});
-            action(x + w - 139, row, 32, 23, "-", () -> {
-                cfg.setCategory(category, level - .1f); refresh();
-            });
-            action(x + w - 104, row, 66, 23, Math.round(level * 100) + "%",
-                () -> {cfg.setCategory(category, 1f); refresh();});
-            action(x + w - 35, row, 35, 23, "+", () -> {
-                cfg.setCategory(category, level + .1f); refresh();
+            String key = cats[index];
+            int yy = y + 28 + i * 28;
+            float value = cfg.categoryVolumes.getOrDefault(key, 1f);
+            addRenderableWidget(new ShatsuLevelSlider(x, yy, w - 92,
+                    key.replace('_', ' ').toUpperCase(Locale.ROOT),
+                    value, v -> cfg.categoryVolumes.put(key, (float) v)));
+            action(x + w - 88, yy, 88, 20, "Default", () -> {
+                cfg.categoryVolumes.remove(key); ShatsuConfig.save(); refresh();
             });
         }
-        int footer = Math.min(height - 53, y + 34 + visible * 28);
+        int footer = Math.min(height - 53, y + 33 + visible * 28);
         action(x, footer, 93, 19, "Previous", () -> {
             mixerPage = Math.max(0, mixerPage - 1); refresh();
         });
-        action(x + 97, footer, w - 194, 19, "Mixer " + (mixerPage + 1) + "/" + (endPage + 1),
+        action(x + 97, footer, w - 194, 19, "Category page " + (mixerPage + 1) + "/" + (endPage + 1),
             () -> {cfg.resetMixer(); refresh();});
         action(x + w - 93, footer, 93, 19, "Next", () -> {
             mixerPage = Math.min(endPage, mixerPage + 1); refresh();
         });
     }
+
     private void presets(int x, int y, int w) {
         String[] names = {"Balanced", "Soft ASMR", "Crisp & Tactile", "Immersive", "Combat Focus", "Minimal"};
         int step = Math.max(23, Math.min(29, (height - y - 40) / names.length));
@@ -213,6 +206,52 @@ public final class ShatsuScreen extends Screen {
         action(x + 2 * w / 3 + 2, bottom, w - 2 * w / 3 - 2, 20, "Test Totem",
             () -> preview("minecraft:item.totem.use"));
     }
+    /** Real drag sliders; volume changes affect playback immediately and save on close. */
+    private static final class ShatsuLevelSlider extends AbstractSliderButton {
+        private final String label;
+        private final DoubleConsumer update;
+        ShatsuLevelSlider(int x, int y, int w, String label, float initial, DoubleConsumer update) {
+            super(x, y, w, 20, Component.literal(label),
+                    Math.max(0, Math.min(1, initial / 2.0)));
+            this.label = label;
+            this.update = update;
+            updateMessage();
+        }
+        @Override protected void updateMessage() {
+            setMessage(Component.literal(label + "     " + Math.round(value * 200) + "%"));
+        }
+        @Override protected void applyValue() {
+            update.accept(Math.max(0, Math.min(2, value * 2)));
+        }
+    }
+
+    /** Soft dark-wood palette with muted antique-gold highlights. */
+    @Override public void extractBackground(GuiGraphicsExtractor g, int mx, int my, float partialTick) {
+        int px = panelX(), w = panelWidth();
+        g.fillGradient(0, 0, width, height, 0xF016221F, 0xF00D1517);
+        g.fill(px - 10, 6, px + w + 10, height - 6, 0xEE23302D);
+        g.outline(px - 10, 6, w + 20, height - 12, 0xFF687567);
+        g.fill(px - 10, 6, px + w + 10, 9, 0xFFD2B57C);
+        g.fill(px, 62, px + w, 63, 0xFF475C52);
+        g.fill(px, height - 32, px + w, height - 31, 0xFF475C52);
+        if (tab == 0) {
+            for (int yy = 65; yy < Math.min(height - 38, 210); yy += 29)
+                g.fill(px - 2, yy - 2, px + w + 2, yy + 25, 0x603E4B45);
+        } else if (tab == 2) {
+            g.fill(px - 2, 63, px + w + 2, Math.min(height - 37, 278), 0x403E4B45);
+        }
+    }
+
+    @Override public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float partialTick) {
+        super.extractRenderState(g, mx, my, partialTick);
+        int x = panelX();
+        g.text(font, "SHATSU", x + 8, 18, 0xFFF5E9CE);
+        g.text(font, "SOUND STUDIO  •  FABRIC 26.3", x + 101, 18, 0xFFA9BDAF);
+        if (status != null && !status.isBlank())
+            g.text(font, status.length() > 58 ? status.substring(0, 55) + "..." : status,
+                    x + 8, height - 42, 0xFFD2B57C);
+    }
+
     private void stopPreview() {
         if (activePreview != null) {
             Minecraft.getInstance().getSoundManager().stop(activePreview);
