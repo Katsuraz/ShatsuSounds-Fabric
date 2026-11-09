@@ -76,9 +76,14 @@ jobs:
           PY
       - name: Label asset state
         id: assets
-        run: echo "artifact=ShatsuSounds-v0.4.0-ALPHA-ASMR-ACTIONS-COMPAT" >> "$GITHUB_OUTPUT"
+        run: echo "artifact=ShatsuSounds-v0.5.2-ALPHA-AUDIO-CLEANUP" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.assets.outputs.artifact }}
           path: build/libs/*.jar
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ShatsuSounds-v0.5.2-ARCHIVED-UNUSED-AUDIO
+          path: build/generated/shatsu-v052-unused-audio.zip
           if-no-files-found: error
