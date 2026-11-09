@@ -114,6 +114,15 @@ def update(root, bundle=AUDIO_BUNDLE):
   if first.exists():preview['preview.'+key.replace('/','.')]=ev(key,volume=.6)
  newpath=root/'assets/shatsufresh/sounds.json';newpath.parent.mkdir(parents=True,exist_ok=True)
  save(preview,newpath)
+ # The Sounds mod uses per-item definitions. The totem now gets its own
+ # warm, quiet inventory pickup instead of the generic 'magic' click.
+ totem_rule=root/'assets/minecraft/sounds/items/shatsu_v7_totem_of_undying.json'
+ if totem_rule.is_file():
+  rule=json.loads(totem_rule.read_text('utf-8'))
+  rule['soundEvent']='shatsufresh:preview.inventory.totem'
+  rule['volume']=0.43
+  rule['pitch']=1.0
+  save(rule,totem_rule)
  print('Shatsu 0.3: mapped',len(changes),'vanilla events;',len(preview),'new preview events',len(food_profiles),'food profiles; Clangor mappings updated')
  return {'vanilla':len(changes),'preview':len(preview)}
 if __name__=='__main__':
