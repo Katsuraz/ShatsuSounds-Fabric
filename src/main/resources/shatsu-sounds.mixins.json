@@ -1,0 +1,12 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "dev.shatsu.sounds.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "SoundEngineMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

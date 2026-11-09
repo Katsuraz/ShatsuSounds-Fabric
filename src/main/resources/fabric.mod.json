@@ -17,6 +17,9 @@
       "dev.shatsu.sounds.client.ShatsuModMenu"
     ]
   },
+  "mixins": [
+    "shatsu-sounds.mixins.json"
+  ],
   "depends": {
     "fabricloader": ">=0.19.5",
     "minecraft": "~26.3",
