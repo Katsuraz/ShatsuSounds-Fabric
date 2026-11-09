@@ -44,7 +44,7 @@ public final class ShatsuRemoteFoodAudio {
             if (dist < smallest) { closest = p; smallest = dist; }
         }
         if (closest == null) return false;
-        SoundEvent replacement = ShatsuFoodAudio.select(likelyFood(closest), original);
+        SoundEvent replacement = ShatsuFoodAudio.select(likelyFood(closest), original, "remote");
         if (replacement == original) return false;
         level.playLocalSound(closest, replacement, source, volume, pitch);
         return true;
@@ -53,7 +53,7 @@ public final class ShatsuRemoteFoodAudio {
     public static boolean replaceEntity(Entity entity, SoundEvent original,
                                          SoundSource source, float volume, float pitch) {
         if (!isPlayerEating(original, source) || !(entity instanceof Player player)) return false;
-        SoundEvent replacement = ShatsuFoodAudio.select(likelyFood(player), original);
+        SoundEvent replacement = ShatsuFoodAudio.select(likelyFood(player), original, "remote");
         if (replacement == original) return false;
         entity.level().playLocalSound(entity, replacement, source, volume, pitch);
         return true;
