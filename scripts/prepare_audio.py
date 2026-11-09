@@ -164,6 +164,9 @@ def generate_catalog(root):
                 category = 'inventory'
             elif any(v in event for v in ('attack', 'hit', 'weapon', 'mace', 'spear', 'trident', 'bow', 'shield')):
                 category = 'combat'
+            elif event.startswith('drink.') or 'bucket.' in event: category = 'liquids'
+            elif event.startswith('preview.asmr.magic'): category = 'magic'
+            elif event.startswith('preview.nature.') or event.startswith('animal.'): category = 'animals'
             elif event.startswith('food.') or any(v in event for v in ('eat', 'drink', 'honey')):
                 category = 'food'
             elif any(v in event for v in ('weather', 'rain', 'thunder', 'explode')):
@@ -220,6 +223,8 @@ def main():
     upgrade_action_audio(root)
     from upgrade_fantasy_audio import update as upgrade_fantasy_audio
     upgrade_fantasy_audio(root)
+    from upgrade_asmr_core import update as upgrade_asmr_core
+    upgrade_asmr_core(root)
     qualify_local_sound_references(root)
     count = generate_catalog(root)
     validate(root)
