@@ -64,7 +64,7 @@ public final class ShatsuConfig {
         if (id.contains("inventory") || id.contains("typing") || id.contains("item_click") || id.contains("item_drag")) return "inventory";
         if (id.contains("step") || id.contains("landing") || id.contains("swim")) return "movement";
         if (id.contains("attack") || id.contains("hit") || id.contains("mace") || id.contains("weapon") || id.contains("trident") || id.contains("bow") || id.contains("spear")) return "combat";
-        if (id.contains("eat") || id.contains("drink") || id.contains("honey")) return "food";
+        if (id.startsWith("food.") || id.contains("eat") || id.contains("drink") || id.contains("honey")) return "food";
         if (id.contains("rain") || id.contains("thunder") || id.contains("explode") || id.contains("wind_burst")) return "environment";
         if (id.contains("open") || id.contains("close") || id.contains("click") || id.contains("door")) return "interaction";
         return "other";
