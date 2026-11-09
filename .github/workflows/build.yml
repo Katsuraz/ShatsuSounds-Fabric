@@ -76,7 +76,7 @@ jobs:
           PY
       - name: Label asset state
         id: assets
-        run: echo "artifact=ShatsuSounds-v0.3.0-ALPHA-RECORDED-AUDIO-UI-UNTESTED" >> "$GITHUB_OUTPUT"
+        run: echo "artifact=ShatsuSounds-v0.3.1-ALPHA-BOW-FOOD-STUDIO-UNTESTED" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.assets.outputs.artifact }}
