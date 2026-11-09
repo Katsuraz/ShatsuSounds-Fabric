@@ -35,20 +35,26 @@ class RecordedAudioTests(unittest.TestCase):
    for mat in ('wooden','stone','copper','iron','gold','diamond','netherite','general'):
     for action in ('swing','select'):
      event=f'{action}.{tool}.{mat}'
-     self.assertIn(event,self.clang)
-     sounds=self.clang[event]['sounds']
+     self.assertIn(event,self.clangor)
+     sounds=self.clangor[event]['sounds']
      self.assertEqual(len(sounds),2,event)
      self.assertGreaterEqual(sounds[0]['volume'],0.90,event)
      for i in (1,2):
       self.assertTrue((ROOT/'shatsufresh/sounds'/f'tool/{tool}/{action}/{mat}/{i}.ogg').exists())
    for kind in ('weak','strong','crit','knockback','sweep'):
     event=f'hit.weapon_n_tool.{tool}.{kind}'
-    self.assertTrue(self.clang[event]['sounds'][0]['name'].startswith(f'shatsufresh:tool/{tool}/impact/'))
+    self.assertTrue(self.clangor[event]['sounds'][0]['name'].startswith(f'shatsufresh:tool/{tool}/impact/'))
  def test_quieter_approved_voices_are_not_replaced(self):
   # Preserving the approved milk/honey/potion sources and vanilla mob voices
   for event in ('food.honey','food.milk','food.potion'):
    self.assertTrue(self.food[event]['sounds'][0]['name'].startswith('shatsufresh:food/'))
   self.assertFalse(any(k.startswith('entity.zombie.') for k in self.preview))
+ def test_food_and_flight_events_are_discoverable(self):
+  catalog=json.loads((ROOT.parent/'shatsu_catalog.json').read_text('utf8'))
+  self.assertIn({'id':'shatsu_food_audio:food.apple','category':'food',
+                 'variations':2,'namespace':'shatsu_food_audio'},catalog)
+  self.assertIn('preview.arrow.fly',self.preview)
+  self.assertTrue((ROOT/'shatsufresh/sounds/arrow/fly/1.ogg').is_file())
  def test_weapon_chain(self):
   for id in ('entity.arrow.shoot','entity.arrow.hit','entity.arrow.hit_player',
              'item.crossbow.shoot','item.crossbow.loading_start',
