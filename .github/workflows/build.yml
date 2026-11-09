@@ -41,11 +41,32 @@ jobs:
               assert any(n.endswith('.ogg') for n in names)
               print('Validated', len(names), 'sound-pack entries')
           PY
-      - name: Compile Fabric mod source
+      - name: Confirm FFmpeg hit-audio tooling
+        run: ffmpeg -version | head -1
+      - name: Build the mod with repaired Shatsu audio
         run: gradle build --stacktrace
+      - name: Test block hits and non-special item fallback
+        run: python3 -m unittest discover -s scripts -p 'test_sound_repair.py' -v
+      - name: Verify repaired sounds are inside the actual JAR
+        run: |
+          python3 - <<'PY'
+          import pathlib, zipfile
+          jars = [x for x in pathlib.Path('build/libs').glob('*.jar') if '-sources' not in x.name]
+          assert jars, 'No compiled Fabric JAR'
+          for jar in jars:
+              with zipfile.ZipFile(jar) as z:
+                  names=set(z.namelist())
+                  for item in ('fabric.mod.json', 'assets/minecraft/sounds.json',
+                               'assets/shatsu4/sounds.json', 'assets/clangor/sounds.json',
+                               'assets/customblocksounds/config/blockmap.json',
+                               'assets/shatsuv7/sounds/block/stone/hit_1.ogg'):
+                      assert item in names, (jar, item)
+                  assert sum(x.endswith('.ogg') for x in names) >= 2000, (jar, 'missing OGGs')
+                  print('JAR validated:', jar, len(names), 'packaged files')
+          PY
       - name: Label asset state
         id: assets
-        run: echo "artifact=ShatsuSounds-ALPHA-V7.3-AUDIO-UNTESTED" >> "$GITHUB_OUTPUT"
+        run: echo "artifact=ShatsuSounds-v0.2.1-ALPHA-MINING-AND-ITEM-FIX-UNTESTED" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.assets.outputs.artifact }}
