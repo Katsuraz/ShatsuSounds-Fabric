@@ -23,7 +23,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: Shatsu-Sound-Lab-Vanilla-26.3-Registry
-          path: tools/sound_lab/vanilla_sound_registry_26_3.json
+          path: tools/sound_lab/vanilla_*_registry_26_3.json
           if-no-files-found: error
       - uses: actions/setup-java@v4
         with:
