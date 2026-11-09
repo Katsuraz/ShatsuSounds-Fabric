@@ -1,4 +1,4 @@
-name: Shatsu Sounds Fabric 26.3 - Full Audio Build
+name: Shatsu Sounds Fabric 26.3 - Studio Build
 on:
   push:
     branches: [main]
@@ -49,7 +49,7 @@ jobs:
       - name: Build the mod with repaired Shatsu audio
         run: gradle build --stacktrace
       - name: Test block hits and non-special item fallback
-        run: python3 -m unittest discover -s scripts -p 'test_sound_repair.py' -v
+        run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
       - name: Verify repaired sounds are inside the actual JAR
         run: |
           python3 - <<'PY'
@@ -62,14 +62,17 @@ jobs:
                   for item in ('fabric.mod.json', 'shatsu_catalog.json', 'assets/minecraft/sounds.json',
                                'assets/shatsu4/sounds.json', 'assets/clangor/sounds.json',
                                'assets/customblocksounds/config/blockmap.json',
-                               'assets/shatsuv7/sounds/block/stone/hit_1.ogg'):
+                               'assets/shatsuv7/sounds/block/stone/hit_1.ogg',
+                               'assets/shatsupolish/sounds.json',
+                               'assets/shatsupolish/sounds/magic/xp/1.ogg',
+                               'assets/shatsupolish/sounds/weapons/shield_raise/1.ogg'):
                       assert item in names, (jar, item)
-                  assert sum(x.endswith('.ogg') for x in names) >= 2000, (jar, 'missing OGGs')
+                  assert sum(x.endswith('.ogg') for x in names) >= 2190, (jar, 'missing OGGs')
                   print('JAR validated:', jar, len(names), 'packaged files')
           PY
       - name: Label asset state
         id: assets
-        run: echo "artifact=ShatsuSounds-v0.2.1-ALPHA-MINING-AND-ITEM-FIX-UNTESTED" >> "$GITHUB_OUTPUT"
+        run: echo "artifact=ShatsuSounds-v0.2.2-ALPHA-SOUND-STUDIO-UNTESTED" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.assets.outputs.artifact }}
