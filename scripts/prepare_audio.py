@@ -118,9 +118,11 @@ def generate_catalog(root):
                 elif event.endswith('.place'): category = 'block_place'
                 elif event.endswith(('.step', '.fall')): category = 'footsteps'
                 else: category = 'block_other'
+            elif any(v in event for v in ('experience_orb', 'totem')):
+                category = 'magic'
             elif any(v in event for v in ('inventory', 'typing', 'item_click', 'item_drag')):
                 category = 'inventory'
-            elif any(v in event for v in ('attack', 'hit', 'weapon', 'mace', 'spear', 'trident', 'bow')):
+            elif any(v in event for v in ('attack', 'hit', 'weapon', 'mace', 'spear', 'trident', 'bow', 'shield')):
                 category = 'combat'
             elif any(v in event for v in ('eat', 'drink', 'honey')):
                 category = 'food'
@@ -170,6 +172,8 @@ def main():
         raise RuntimeError(f'Suspicious audio count: {processed=} {raised=}')
     changed = patch_custom_block_sounds(root)
     patch_generic_hits(root)
+    from polish_audio import polish
+    polish(root)
     count = generate_catalog(root)
     validate(root)
     print(f'Shatsu repair: {raised}/{processed} quiet hit OGGs normalized; '
