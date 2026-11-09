@@ -1,9 +1,10 @@
-name: Shatsu Sounds Fabric 26.3 - Source Build
+name: Shatsu Sounds Fabric 26.3 - Full Audio Build
 on:
   push:
     branches: [main]
     paths:
       - 'src/**'
+      - 'Shatsu_Satisfying_Sounds_v7.3_SOFT_GENERIC_HITS_EXPLOSIONS_26.3.zip'
       - 'build.gradle'
       - 'gradle.properties'
       - 'settings.gradle'
@@ -27,18 +28,24 @@ jobs:
           gradle-version: '9.8.1'
       - name: Validate repository source structure
         run: python3 scripts/check_project.py
+      - name: Validate uploaded sound pack
+        run: |
+          python3 - <<'PY'
+          import zipfile
+          p = 'Shatsu_Satisfying_Sounds_v7.3_SOFT_GENERIC_HITS_EXPLOSIONS_26.3.zip'
+          with zipfile.ZipFile(p) as z:
+              bad = z.testzip()
+              assert bad is None, f'Corrupt archive member: {bad}'
+              names = set(z.namelist())
+              assert 'assets/minecraft/sounds.json' in names
+              assert any(n.endswith('.ogg') for n in names)
+              print('Validated', len(names), 'sound-pack entries')
+          PY
       - name: Compile Fabric mod source
         run: gradle build --stacktrace
       - name: Label asset state
         id: assets
-        run: |
-          if test -f audio/ShatsuSounds_v7.3_assets_only.zip; then
-            echo "artifact=ShatsuSounds-ALPHA-AUDIO-INCLUDED-UNTESTED" >> "$GITHUB_OUTPUT"
-            echo "Bundled audio archive detected and included in build."
-          else
-            echo "artifact=ShatsuSounds-ALPHA-UI-ONLY-NO-AUDIO" >> "$GITHUB_OUTPUT"
-            echo "::warning::Shatsu v7.3 audio bundle is not yet committed; this JAR is source/UI only."
-          fi
+        run: echo "artifact=ShatsuSounds-ALPHA-V7.3-AUDIO-UNTESTED" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.assets.outputs.artifact }}
