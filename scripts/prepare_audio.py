@@ -216,6 +216,8 @@ def main():
     polish(root)
     from apply_recorded_audio import update as apply_recorded
     apply_recorded(root, Path(__file__).resolve().parents[1] / 'build/generated/shatsu-v03-audio.zip')
+    from upgrade_action_audio import update as upgrade_action_audio
+    upgrade_action_audio(root)
     qualify_local_sound_references(root)
     count = generate_catalog(root)
     validate(root)
