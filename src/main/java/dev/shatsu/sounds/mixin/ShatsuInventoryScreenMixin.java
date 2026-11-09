@@ -3,7 +3,7 @@ package dev.shatsu.sounds.mixin;
 import dev.shatsu.sounds.client.ShatsuInventoryAudio;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -22,7 +22,7 @@ public abstract class ShatsuInventoryScreenMixin {
 
     @Inject(method = "slotClicked", at = @At("HEAD"), require = 0)
     private void shatsu$inventorySound(Slot slot, int slotId, int mouseButton,
-                                       ClickType clickType, CallbackInfo ci) {
+                                       ContainerInput clickType, CallbackInfo ci) {
         ShatsuInventoryAudio.clicked(slot, menu.getCarried(), clickType);
     }
 }
