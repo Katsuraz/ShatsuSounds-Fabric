@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'src/**'
+      - 'audio/shatsu_v03/**'
       - 'Shatsu_Satisfying_Sounds_v7.3_SOFT_GENERIC_HITS_EXPLOSIONS_26.3.zip'
       - 'build.gradle'
       - 'gradle.properties'
@@ -65,14 +66,17 @@ jobs:
                                'assets/shatsuv7/sounds/block/stone/hit_1.ogg',
                                'assets/shatsupolish/sounds.json',
                                'assets/shatsupolish/sounds/magic/xp/1.ogg',
-                               'assets/shatsupolish/sounds/weapons/shield_raise/1.ogg'):
+                               'assets/shatsupolish/sounds/weapons/shield_raise/1.ogg',
+                               'assets/shatsufresh/sounds.json',
+                               'assets/shatsufresh/sounds/mace/hit/1.ogg',
+                               'assets/shatsufresh/sounds/food/drink/1.ogg'):
                       assert item in names, (jar, item)
-                  assert sum(x.endswith('.ogg') for x in names) >= 2190, (jar, 'missing OGGs')
+                  assert sum(x.endswith('.ogg') for x in names) >= 2300, (jar, 'missing OGGs')
                   print('JAR validated:', jar, len(names), 'packaged files')
           PY
       - name: Label asset state
         id: assets
-        run: echo "artifact=ShatsuSounds-v0.2.3-ALPHA-OPTIONAL-INTEGRATIONS-UNTESTED" >> "$GITHUB_OUTPUT"
+        run: echo "artifact=ShatsuSounds-v0.3.0-ALPHA-RECORDED-AUDIO-UI-UNTESTED" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.assets.outputs.artifact }}
