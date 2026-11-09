@@ -241,7 +241,6 @@ public final class ShatsuScreen extends Screen {
             action(x,y0+81,w,22,"Quiet enchantment accents: "+(cfg.specialMagicEnabled?"ON":"OFF"),()->{
                 cfg.specialMagicEnabled=!cfg.specialMagicEnabled;ShatsuConfig.save();refresh();
             });
-        }
         } else if (labPage==3) {
             action(x,y0,col,22,"Zombie growl",()->preview("minecraft:entity.zombie.ambient"));
             action(x+col+6,y0,col,22,"Skeleton bones",()->preview("minecraft:entity.skeleton.ambient"));
@@ -265,6 +264,7 @@ public final class ShatsuScreen extends Screen {
                 status="Slot click hook plays action- and material-specific sounds.";
             });
             action(x,y0+109,w,22,"Inventory opening sound remains unchanged",()->{status="Approved inventory-opening sound protected";});
+        }
         if(height>y+226) {
             addRenderableWidget(new ShatsuLevelSlider(x,y+166,w,"ASMR LIQUIDS",
                 cfg.categoryVolumes.getOrDefault("liquids",1f),
