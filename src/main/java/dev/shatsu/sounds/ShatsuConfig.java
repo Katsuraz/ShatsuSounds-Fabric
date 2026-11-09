@@ -33,6 +33,9 @@ public final class ShatsuConfig {
     public boolean actionsBeyondCompatibility = true;
     public boolean animalsPackEnabled = false;
     public boolean arrowWhooshEnabled = true;
+    public boolean inventoryAudioEnabled = true;
+    public boolean natureAudioEnabled = true;
+    public float mobAudioIntensity = 1.0f;
     private ShatsuConfig() {}
     public static ShatsuConfig current() { return ACTIVE; }
     public static synchronized void load() {
