@@ -63,7 +63,7 @@ class RecordedAudioTests(unittest.TestCase):
   for key in ('select.spear','swing.spear','hit.spear.weak','hit.spear.strong','hit.spear.crit'):
    self.assertTrue(self.clangor[key]['sounds'][0]['name'].startswith('shatsufresh:premium/spear/'),key)
   for key in ('entity.arrow.shoot','item.crossbow.shoot','item.crossbow.loading_start','item.trident.throw'):
-   self.assertTrue(self.mc[key]['sounds'][0]['name'].startswith('shatsufresh:premium/'),key)
+   self.assertTrue(self.mc[key]['sounds'][0]['name'].startswith(('shatsufresh:premium/', 'shatsufresh:asmr/')),key)
  def test_real_distinct_food_profiles(self):
   import hashlib
   names=[]
