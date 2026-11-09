@@ -44,7 +44,7 @@ def update(root):
             pitch=1.0+([-0.035,0.024,-0.015,0.042][(i-1)%4])
             # A small amount of natural variation while retaining each recording
             # and keeping output bounded for rapid gameplay repetition.
-            chain=f'{eq},asetrate=44100*{pitch:.4f},aresample=44100,afade=t=out:st={max(.10,duration-.13):.3f}:d=.13,alimiter=limit=0.91:level=false'
+            chain=f'{eq},asetrate=44100*{pitch:.4f},aresample=44100,afade=t=out:st={max(.10,duration-.13):.3f}:d=0.13,alimiter=limit=0.91:level=false'
             ffmpeg(inpath,base/'asmr'/group/f'{i}.ogg',f'atrim=duration={duration:.3f},asetpts=PTS-STARTPTS,{chain}')
             made+=1
     D=lambda rel:base/rel
