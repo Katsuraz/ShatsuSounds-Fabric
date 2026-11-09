@@ -105,6 +105,46 @@ def validate(root):
 
 
 
+def qualify_local_sound_references(root):
+    """Minecraft resolves unqualified file names under minecraft:, not under
+    the namespace of the sounds.json file. Fix only files we can prove exist.
+    This corrects legacy bow/trident sounds without changing any OGG bytes or
+    rerouting intentional vanilla/event references.
+    """
+    changes = {}
+    for path in sorted((root / 'assets').glob('*/sounds.json')):
+        namespace = path.parent.name
+        events = json.loads(path.read_text('utf-8'))
+        modified = 0
+        for event, definition in events.items():
+            if not isinstance(definition, dict):
+                continue
+            sounds = definition.get('sounds', [])
+            if not isinstance(sounds, list):
+                continue
+            for index, original in enumerate(sounds):
+                obj = original if isinstance(original, dict) else None
+                if obj is not None and obj.get('type', 'file') != 'file':
+                    continue
+                name = obj.get('name', '') if obj is not None else original
+                if not isinstance(name, str) or ':' in name or not name:
+                    continue
+                if not (root / 'assets' / namespace / 'sounds' / (name + '.ogg')).is_file():
+                    continue
+                fixed_name = namespace + ':' + name
+                if obj is not None:
+                    obj['name'] = fixed_name
+                else:
+                    sounds[index] = fixed_name
+                modified += 1
+        if modified:
+            path.write_text(json.dumps(events, indent=2, ensure_ascii=False) + '\n', 'utf-8')
+            changes[namespace] = modified
+    print('Shatsu namespace repair:', changes)
+    return changes
+
+
+
 def generate_catalog(root):
     """Build the actual Mod Menu/mixer catalog from the sound events in the JAR."""
     rows = []
@@ -176,6 +216,7 @@ def main():
     polish(root)
     from apply_recorded_audio import update as apply_recorded
     apply_recorded(root, Path(__file__).resolve().parents[1] / 'build/generated/shatsu-v03-audio.zip')
+    qualify_local_sound_references(root)
     count = generate_catalog(root)
     validate(root)
     print(f'Shatsu repair: {raised}/{processed} quiet hit OGGs normalized; '
