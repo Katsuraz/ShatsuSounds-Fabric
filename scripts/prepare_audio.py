@@ -230,6 +230,8 @@ def main():
     qualify_local_sound_references(root)
     count = generate_catalog(root)
     validate(root)
+    from prune_unused_v052 import clean as prune_unused
+    prune_unused(root, Path(__file__).resolve().parents[1] / 'build/generated/shatsu-v052-unused-audio.zip')
     print(f'Shatsu repair: {raised}/{processed} quiet hit OGGs normalized; '
           f'{changed}/1047 block hit volumes improved; 10 generic/rods hit events repaired; {count} catalog entries.')
 
