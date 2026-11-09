@@ -95,10 +95,12 @@ class SoundPolishTests(unittest.TestCase):
                     self.assertTrue(path.is_file(), f"{event}: {path}")
         self.assertEqual(len(families), 33)
 
-    def test_required_dependencies(self):
+    def test_optional_sound_mod_dependencies(self):
         data = json.loads((BASE / "src/main/resources/fabric.mod.json").read_text("utf8"))
-        for mod in ("clangor", "sound", "customblocksounds", "fabric-api"):
-            self.assertIn(mod, data["depends"])
+        self.assertIn("fabric-api", data["depends"])
+        for mod in ("clangor", "sound", "customblocksounds"):
+            self.assertNotIn(mod, data["depends"])
+            self.assertIn(mod, data["suggests"])
         self.assertNotIn("modmenu", data["depends"])
         self.assertNotIn("sound_physics_remastered", data["depends"])
 
