@@ -56,7 +56,7 @@ jobs:
           for jar in jars:
               with zipfile.ZipFile(jar) as z:
                   names=set(z.namelist())
-                  for item in ('fabric.mod.json', 'assets/minecraft/sounds.json',
+                  for item in ('fabric.mod.json', 'shatsu_catalog.json', 'assets/minecraft/sounds.json',
                                'assets/shatsu4/sounds.json', 'assets/clangor/sounds.json',
                                'assets/customblocksounds/config/blockmap.json',
                                'assets/shatsuv7/sounds/block/stone/hit_1.ogg'):
