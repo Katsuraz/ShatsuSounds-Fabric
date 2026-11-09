@@ -51,9 +51,9 @@ class SoundPolishTests(unittest.TestCase):
     def test_weapon_refresh_without_mace_damage(self):
         self.assertTrue(all(x["name"].startswith(("shatsupolish:weapons/", "shatsufresh:bow/", "shatsufresh:trident/"))
                             for x in self.minecraft["entity.arrow.shoot"]["sounds"]))
-        self.assertTrue(all(x["name"].startswith("shatsupolish:weapons/")
+        self.assertTrue(all(x["name"].startswith("shatsufresh:trident/")
                             for x in self.minecraft["item.trident.throw"]["sounds"]))
-        self.assertTrue(all(x["name"].startswith("shatsupolish:weapons/")
+        self.assertTrue(all(x["name"].startswith("shatsufresh:bow/")
                             for x in self.clangor["use.bow.charge"]["sounds"]))
         self.assertTrue(any(x.startswith("hit.mace.") for x in self.clangor))
 
