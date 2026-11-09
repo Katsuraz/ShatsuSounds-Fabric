@@ -23,6 +23,7 @@ import java.util.Locale;
 public final class ShatsuScreen extends Screen {
     private final Screen previous;
     private String query = "";
+    private String inventoryItemId = "minecraft:enchanted_golden_apple";
     private String status = "";
     private int tab = 0, filter = 0, page = 0, mixerPage = 0, labPage = 0, comparePage = 0;
     private int scanCursor = 0, scanned = 0;
@@ -255,21 +256,40 @@ public final class ShatsuScreen extends Screen {
             });
             action(x,y0+108,w,22,"Only real animals and folklore mobs / ANS voices protected",()->tab(7));
         } else if (labPage==4) {
-            action(x,y0,col,22,"Pick up an item",()->preview("shatsufresh:inventory.move.pickup.metal"));
-            action(x+col+6,y0,col,22,"Put down an item",()->preview("shatsufresh:inventory.move.place.wooden"));
-            action(x,y0+26,col,22,"Swap inventory",()->preview("shatsufresh:inventory.move.swap.glass"));
-            action(x+col+6,y0+26,col,22,"Shift-transfer",()->preview("shatsufresh:inventory.move.transfer.crystal"));
-            action(x,y0+54,w,22,"Inventory movement: "+(cfg.inventoryAudioEnabled?"ON":"OFF"),()->{
+            EditBox item = new EditBox(font,x,y0,w-75,20,Component.literal("Minecraft item ID"));
+            item.setValue(inventoryItemId);
+            item.setHint(Component.literal("minecraft:enchanted_golden_apple"));
+            item.setResponder(value -> inventoryItemId=value.trim());
+            addRenderableWidget(item);
+            action(x+w-71,y0,71,20,"SELECT",()->{
+                status="Inventory sound profile: "+ShatsuInventoryProfiles.forId(inventoryItemId);
+                refresh();
+            });
+            String[] types={"pickup","place","swap","split","transfer","drop"};
+            for(int i=0;i<types.length;i++) {
+                final String actionType=types[i];
+                int yy=y0+26+(i/2)*26;
+                action(x+(i%2)*(col+6),yy,col,22,
+                    actionType.toUpperCase(Locale.ROOT),()->{
+                        String category=ShatsuInventoryProfiles.forId(inventoryItemId);
+                        preview("shatsufresh:inventory.move."+actionType+"."+category);
+                        status=inventoryItemId+" / "+actionType+" / "+category;
+                    });
+            }
+            action(x,y0+109,w,22,"Inventory movement: "+(cfg.inventoryAudioEnabled?"ON":"OFF"),()->{
                 cfg.inventoryAudioEnabled=!cfg.inventoryAudioEnabled;ShatsuConfig.save();refresh();
             });
-            action(x,y0+82,w,22,"Slot clicks: "+ShatsuInventoryAudio.hookHits()+
-                    " / Sounds played: "+ShatsuInventoryAudio.interactions()+
+            action(x,y0+136,w,22,"Slot clicks: "+ShatsuInventoryAudio.hookHits()+
+                    " / Played: "+ShatsuInventoryAudio.interactions()+
                     " / Missing: "+ShatsuInventoryAudio.missingEvents(),()->{
                 status=ShatsuInventoryAudio.lastEvent(); refresh();
             });
-            action(x,y0+109,w,22,"Inventory opening sound remains unchanged",()->{status="Approved inventory-opening sound protected";});
+            if(height>y0+195)
+                action(x,y0+161,w,22,"Inventory-opening sound stays protected",()->{
+                    status="Approved inventory opening audio unchanged";
+                });
         }
-        if(height>y+226) {
+        if(labPage!=4 && height>y+226) {
             addRenderableWidget(new ShatsuLevelSlider(x,y+166,w,"ASMR LIQUIDS",
                 cfg.categoryVolumes.getOrDefault("liquids",1f),
                 v->cfg.setCategory("liquids",(float)v)));
