@@ -11,7 +11,7 @@ class RecordedAudioTests(unittest.TestCase):
   cls.preview=json.loads((ROOT/'shatsufresh/sounds.json').read_text('utf8'))
  def test_recordings_and_mono(self):
   files=list((ROOT/'shatsufresh/sounds').rglob('*.ogg'))
-  self.assertEqual(len(files),268) # 166 curated recordings + 102 tool-specific processed variants
+  self.assertEqual(len(files),369) # 166 original + 102 tool + 101 premium XP/weapon/food samples
   for p in files:
    self.assertGreater(p.stat().st_size,300,str(p))
   for p in (files[0],files[-1],next(x for x in files if 'mace/' in str(x)),
@@ -52,9 +52,34 @@ class RecordedAudioTests(unittest.TestCase):
  def test_food_and_flight_events_are_discoverable(self):
   catalog=json.loads((ROOT.parent/'shatsu_catalog.json').read_text('utf8'))
   self.assertIn({'id':'shatsu_food_audio:food.apple','category':'food',
-                 'variations':2,'namespace':'shatsu_food_audio'},catalog)
+                 'variations':3,'namespace':'shatsu_food_audio'},catalog)
   self.assertIn('preview.arrow.fly',self.preview)
   self.assertTrue((ROOT/'shatsufresh/sounds/arrow/fly/1.ogg').is_file())
+ def test_real_spear_events_and_crisp_bow(self):
+  for key in ('item.spear.attack','item.spear.hit','item.spear.use',
+              'item.spear_wood.attack','item.spear_wood.hit','item.spear_wood.use',
+              'item.spear.lunge_1','item.spear.lunge_2','item.spear.lunge_3'):
+   self.assertTrue(self.mc[key]['sounds'][0]['name'].startswith('shatsufresh:premium/spear/'),key)
+  for key in ('select.spear','swing.spear','hit.spear.weak','hit.spear.strong','hit.spear.crit'):
+   self.assertTrue(self.clangor[key]['sounds'][0]['name'].startswith('shatsufresh:premium/spear/'),key)
+  for key in ('entity.arrow.shoot','item.crossbow.shoot','item.crossbow.loading_start','item.trident.throw'):
+   self.assertTrue(self.mc[key]['sounds'][0]['name'].startswith('shatsufresh:premium/'),key)
+ def test_real_distinct_food_profiles(self):
+  import hashlib
+  names=[]
+  for kind in ('apple','bread','soup','cooked_meat','cookie','raw_fish'):
+   name=self.food['food.'+kind]['sounds'][0]['name']
+   self.assertEqual(name,'shatsufresh:premium/food/'+kind+'/1')
+   names.append(hashlib.sha256((ROOT/'shatsufresh/sounds/premium/food'/kind/'1.ogg').read_bytes()).hexdigest())
+  self.assertEqual(len(set(names)),len(names))
+  for kind in ('honey','milk','potion'):
+   self.assertNotIn('premium/',self.food['food.'+kind]['sounds'][0]['name'])
+ def test_magical_xp_variations(self):
+  xp=self.mc['entity.experience_orb.pickup']['sounds']
+  self.assertEqual(len(xp),4)
+  for sound in xp:
+   self.assertTrue(sound['name'].startswith('shatsufresh:premium/magic/experience/'))
+  self.assertEqual(len(self.mc['entity.player.levelup']['sounds']),3)
  def test_weapon_chain(self):
   for id in ('entity.arrow.shoot','entity.arrow.hit','entity.arrow.hit_player',
              'item.crossbow.shoot','item.crossbow.loading_start',
@@ -71,11 +96,11 @@ class RecordedAudioTests(unittest.TestCase):
   for key in ('entity.generic.drink','item.honey_bottle.drink'):
    self.assertTrue(self.mc[key]['sounds'][0]['name'].startswith('shatsufresh:food/'))
   for kind in ('soup','honey','milk','potion','apple','bread','cookie','cooked_meat'):
-   self.assertTrue(self.food['food.'+kind]['sounds'][0]['name'].startswith('shatsufresh:food/'))
+   self.assertTrue(self.food['food.'+kind]['sounds'][0]['name'].startswith('shatsufresh:'),kind)
   for material in ('leather','chain','iron','gold','diamond','netherite','copper'):
    self.assertTrue(self.mc['item.armor.equip_'+material]['sounds'][0]['name'].startswith('shatsufresh:armor/'))
  def test_magic_and_inventory(self):
-  self.assertEqual(self.mc['entity.experience_orb.pickup']['sounds'][0]['name'],'shatsufresh:magic/xp/1')
+  self.assertEqual(self.mc['entity.experience_orb.pickup']['sounds'][0]['name'],'shatsufresh:premium/magic/experience/1')
   self.assertIn('preview.inventory.totem',self.preview)
   rule=json.loads((ROOT/'minecraft/sounds/items/shatsu_v7_totem_of_undying.json').read_text('utf8'))
   self.assertEqual(rule['soundEvent'],'shatsufresh:preview.inventory.totem')
