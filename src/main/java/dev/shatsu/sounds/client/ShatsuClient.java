@@ -9,6 +9,7 @@ public final class ShatsuClient implements ClientModInitializer {
     @Override public void onInitializeClient() {
         ShatsuConfig.load();
         ShatsuGenericAttackFeedback.register();
+        ShatsuShieldReady.register();
         System.out.println("[Shatsu Sounds] Audio catalog events: " + ShatsuCatalog.size());
         for (String id : new String[] {"modmenu","clangor","sound","customblocksounds","sound_physics_remastered"}) {
             System.out.println("[Shatsu Sounds] " + id + ": " +
