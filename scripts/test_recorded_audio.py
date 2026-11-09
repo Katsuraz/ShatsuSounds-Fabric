@@ -52,4 +52,7 @@ class RecordedAudioTests(unittest.TestCase):
  def test_magic_and_inventory(self):
   self.assertEqual(self.mc['entity.experience_orb.pickup']['sounds'][0]['name'],'shatsufresh:magic/xp/1')
   self.assertIn('preview.inventory.totem',self.preview)
+  rule=json.loads((ROOT/'minecraft/sounds/items/shatsu_v7_totem_of_undying.json').read_text('utf8'))
+  self.assertEqual(rule['soundEvent'],'shatsufresh:preview.inventory.totem')
+  self.assertLessEqual(rule['volume'],.5)
 if __name__=='__main__':unittest.main()
