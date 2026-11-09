@@ -44,12 +44,12 @@ class SoundPolishTests(unittest.TestCase):
         for key in ("entity.experience_orb.pickup", "item.totem.use"):
             sounds = self.minecraft[key]["sounds"]
             self.assertEqual(len(sounds), 3)
-            self.assertTrue(all(x["name"].startswith("shatsupolish:magic/") for x in sounds))
+            self.assertTrue(all(x["name"].startswith(("shatsupolish:magic/", "shatsufresh:magic/")) for x in sounds))
         self.assertIn("shield.raise", self.shield)
         self.assertEqual(len(self.shield["shield.raise"]["sounds"]), 2)
 
     def test_weapon_refresh_without_mace_damage(self):
-        self.assertTrue(all(x["name"].startswith("shatsupolish:weapons/")
+        self.assertTrue(all(x["name"].startswith(("shatsupolish:weapons/", "shatsufresh:bow/", "shatsufresh:trident/"))
                             for x in self.minecraft["entity.arrow.shoot"]["sounds"]))
         self.assertTrue(all(x["name"].startswith("shatsupolish:weapons/")
                             for x in self.minecraft["item.trident.throw"]["sounds"]))
