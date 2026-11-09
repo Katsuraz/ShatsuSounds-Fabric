@@ -1,6 +1,6 @@
 # Shatsu Sounds — Fabric 26.3
 
-**v0.3.2 alpha · Louder tools + real arrow whoosh + food category fix**
+**v0.3.3 alpha · Fantasy XP, crisp ranged weapons, real spear sounds, unique food and FX Lab**
 
 A client-side Minecraft Java 26.3 / Fabric mod with a bundled Shatsu soundscape. **Do not install old Shatsu resource packs above this mod** during testing; overlapping sound packs may defeat its overrides.
 
