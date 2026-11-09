@@ -4,6 +4,17 @@
 
 A client-side Minecraft Java 26.3 / Fabric mod with a bundled Shatsu soundscape. **Do not install old Shatsu resource packs above this mod** during testing; overlapping sound packs may defeat its overrides.
 
+
+## v0.3.2 alpha — arrow whoosh, tool audio and visible food profiles
+
+- **Arrow whoosh:** client-local positional whoosh for nearby moving arrows and spectral arrows, not a new sound layered on the bow release or impact; crossbow-fired arrows are included.
+- **New tools:** generated two distinct swing and select samples for each pickaxe, shovel and hoe material, plus tool-type-specific hit profiles. Dedicated audio is sourced from the existing user-approved recorded library and processed differently per tool; it does not redistribute the external Eating Sounds mod.
+- **Weapon volume:** quiet bow, arrow, crossbow, sword, axe, mace and trident OGGs are mastered for stronger audible peaks, and the corresponding sound-event levels are increased.
+- **Food visibility:** \`shatsu_food_audio:food.*\` now appears under **Food** in the library/mixer instead of **Other**. The Home screen includes a Food shortcut, and the integrated client replacement supports both locally emitted eating audio and server-transmitted player chewing sounds.
+- **Preservation:** drinking, milk, honey, potion, inventory opening, fireworks and mob voices are not replaced by this mastering pass.
+
+**Test carefully:** Minecraft 26.3/Fabric/Java 25 required. Remove the obsolete \`shatsu_food_audio-0.1.0.jar\` and older \`shatsu-sounds\` JAR before trying this build. Disable old Shatsu resource pack overrides while testing. Source compilation and CI sound checks do not establish real in-game compatibility with every installed mod.
+
 ## Install
 
 1. Install Java 25, a compatible Fabric Loader, Fabric API and Minecraft **26.3**.
