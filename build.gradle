@@ -39,6 +39,7 @@ processResources {
     from(layout.buildDirectory.dir('generated/shatsu-assets')) {
         include 'assets/**'
         include 'pack.png'
+        include 'shatsu_catalog.json'
     }
 }
 tasks.withType(JavaCompile).configureEach { options.release = 25 }
