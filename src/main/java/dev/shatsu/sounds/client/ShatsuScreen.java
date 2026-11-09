@@ -16,6 +16,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Locale;
 
 /** Compact Shatsu Sound Studio; every editing control writes settings immediately. */
@@ -23,10 +24,12 @@ public final class ShatsuScreen extends Screen {
     private final Screen previous;
     private String query = "";
     private String status = "";
-    private int tab = 0, filter = 0, page = 0, mixerPage = 0;
+    private int tab = 0, filter = 0, page = 0, mixerPage = 0, labPage = 0, comparePage = 0;
+    private int scanCursor = 0, scanned = 0;
+    private final List<String> missingSoundIDs = new ArrayList<>();
     private SoundInstance activePreview;
     private long lastPreviewNanos;
-    private static final String[] TABS = {"Home", "Library", "Mixer", "Presets", "Tools", "FX Lab"};
+    private static final String[] TABS = {"Home", "Library", "Mixer", "Presets", "Tools", "FX Lab", "Compare", "Audit"};
     private static final String[] FILTERS = {"all", "block_hit", "block_break", "block_place",
         "footsteps", "block_other", "combat", "inventory", "movement", "environment",
         "interaction", "food", "magic", "other", "favorites"};
@@ -59,6 +62,8 @@ public final class ShatsuScreen extends Screen {
             case 3 -> presets(x, 65, w);
             case 4 -> diagnostics(x, 65, w);
             case 5 -> soundLab(x, 65, w);
+            case 6 -> comparisonStudio(x, 65, w);
+            case 7 -> coverageScanner(x, 65, w);
             default -> dashboard(x, 65, w);
         }
         action(x, height - 27, Math.max(90, w / 2 - 3), 20, "Stop Preview", this::stopPreview);
@@ -190,52 +195,137 @@ public final class ShatsuScreen extends Screen {
         });
     }
 
-    /** Live FX Lab: every control changes real playback or saved settings. */
+    /** Three-page preview studio: all controls use real event IDs. */
     private void soundLab(int x, int y, int w) {
         ShatsuConfig cfg = ShatsuConfig.current();
-        int col = (w - 6) / 2;
-        action(x, y, col, 22, "Bow · crisp draw", () -> preview("shatsufresh:preview.premium.bow.draw"));
-        action(x + col + 6, y, col, 22, "Bow · sharp release", () -> preview("shatsufresh:preview.premium.bow.shoot"));
-        action(x, y + 25, col, 22, "Crossbow · loaded", () -> preview("shatsufresh:preview.premium.crossbow.end"));
-        action(x + col + 6, y + 25, col, 22, "Trident · throw", () -> preview("shatsufresh:preview.premium.trident.throw"));
-        action(x, y + 50, col, 22, "Spear · jab", () -> preview("minecraft:item.spear.attack"));
-        action(x + col + 6, y + 50, col, 22, "Spear · wood", () -> preview("minecraft:item.spear_wood.attack"));
-        action(x, y + 75, col, 22, "Fantasy XP · pickup", () -> preview("minecraft:entity.experience_orb.pickup"));
-        action(x + col + 6, y + 75, col, 22, "Magic · level up", () -> preview("minecraft:entity.player.levelup"));
-        action(x, y + 100, col, 22, "Food · crunchy apple", () -> preview("shatsu_food_audio:food.apple"));
-        action(x + col + 6, y + 100, col, 22, "Food · wet soup", () -> preview("shatsu_food_audio:food.soup"));
-        action(x, y + 133, col, 23,
-            "Arrow whoosh: " + (cfg.arrowWhooshEnabled ? "ON" : "OFF"), () -> {
-                cfg.arrowWhooshEnabled = !cfg.arrowWhooshEnabled;
-                ShatsuConfig.save(); refresh();
-            });
-        action(x + col + 6, y + 133, col, 23,
-            "Food profiles: " + (cfg.foodAudioEnabled ? "ON" : "OFF"), () -> {
-                cfg.foodAudioEnabled = !cfg.foodAudioEnabled;
-                ShatsuConfig.save(); refresh();
-            });
-        if (height > y + 230) {
-            int i = 159;
-            addRenderableWidget(new ShatsuLevelSlider(x, y + i, w, "COMBAT IMPACT",
-                cfg.categoryVolumes.getOrDefault("combat", 1f),
-                v -> cfg.setCategory("combat", (float)v)));
-            addRenderableWidget(new ShatsuLevelSlider(x, y + i + 26, w, "MAGICAL SPARKLE",
-                cfg.categoryVolumes.getOrDefault("magic", 1f),
-                v -> cfg.setCategory("magic", (float)v)));
+        int third=(w-8)/3;
+        for(int i=0;i<3;i++) {
+            final int selected=i;
+            String name = (labPage==i ? "● " : "") +
+                new String[]{"Gear","Liquids","Enchant"}[i];
+            action(x+i*(third+4),y,third,21,name,()->{labPage=selected;refresh();});
         }
-        int diagY = height - 54;
-        if (diagY > y + 192) {
-            String foodInfo = "Food swaps local " + ShatsuFoodAudio.localMatches() +
-                " / network " + ShatsuFoodAudio.remoteMatches() +
-                " / missing " + ShatsuFoodAudio.missingEvents();
-            action(x, diagY, w, 19, foodInfo, () -> {
-                status = ShatsuFoodAudio.lastProfile();
+        int col=(w-6)/2, y0=y+27;
+        if(labPage==0) {
+            action(x,y0,col,22,"Bow snap",()->preview("shatsufresh:preview.asmr.bow.release"));
+            action(x+col+6,y0,col,22,"Crossbow punch",()->preview("shatsufresh:preview.asmr.crossbow.release"));
+            action(x,y0+26,col,22,"Trident ASMR",()->preview("shatsufresh:preview.asmr.trident.throw"));
+            action(x+col+6,y0+26,col,22,"Spear jab",()->preview("minecraft:item.spear.attack"));
+            action(x,y0+52,col,22,"Wood crack",()->preview("shatsufresh:preview.asmr.wood.break"));
+            action(x+col+6,y0+52,col,22,"Fantasy XP",()->preview("minecraft:entity.experience_orb.pickup"));
+            action(x,y0+82,col,22,"Arrow whoosh: "+(cfg.arrowWhooshEnabled?"ON":"OFF"),()->{
+                cfg.arrowWhooshEnabled=!cfg.arrowWhooshEnabled;ShatsuConfig.save();refresh();
             });
+            action(x+col+6,y0+82,col,22,"Food profiles: "+(cfg.foodAudioEnabled?"ON":"OFF"),()->{
+                cfg.foodAudioEnabled=!cfg.foodAudioEnabled;ShatsuConfig.save();refresh();
+            });
+        } else if(labPage==1) {
+            action(x,y0,col,22,"Water · collect",()->preview("minecraft:item.bucket.fill"));
+            action(x+col+6,y0,col,22,"Water · pour",()->preview("minecraft:item.bucket.empty"));
+            action(x,y0+26,col,22,"Lava · collect",()->preview("minecraft:item.bucket.fill_lava"));
+            action(x+col+6,y0+26,col,22,"Lava · pour",()->preview("minecraft:item.bucket.empty_lava"));
+            action(x,y0+52,col,22,"Honey · thick sip",()->preview("shatsu_liquids:drink.honey"));
+            action(x+col+6,y0+52,col,22,"Milk · soft gulp",()->preview("shatsu_liquids:drink.milk"));
+            action(x,y0+78,col,22,"Potion · magical sip",()->preview("shatsu_liquids:drink.potion"));
+            action(x+col+6,y0+78,col,22,"Water · fresh sip",()->preview("shatsu_liquids:drink.water"));
+            action(x,y0+107,w,22,"Individual drinking: "+(cfg.drinkAudioEnabled?"ON":"OFF"),()->{
+                cfg.drinkAudioEnabled=!cfg.drinkAudioEnabled;ShatsuConfig.save();refresh();
+            });
+        } else {
+            action(x,y0,col,22,"Golden apple",()->preview("shatsufresh:preview.asmr.magic.golden_apple"));
+            action(x+col+6,y0,col,22,"Enchanted apple",()->preview("shatsufresh:preview.asmr.magic.enchanted_apple"));
+            action(x,y0+26,col,22,"Golden carrot",()->preview("shatsufresh:preview.asmr.magic.golden_carrot"));
+            action(x+col+6,y0+26,col,22,"Chorus fruit",()->preview("shatsufresh:preview.asmr.magic.chorus_fruit"));
+            action(x,y0+52,col,22,"Mystical level up",()->preview("minecraft:entity.player.levelup"));
+            action(x+col+6,y0+52,col,22,"XP pickup",()->preview("minecraft:entity.experience_orb.pickup"));
+            action(x,y0+81,w,22,"Quiet enchantment accents: "+(cfg.specialMagicEnabled?"ON":"OFF"),()->{
+                cfg.specialMagicEnabled=!cfg.specialMagicEnabled;ShatsuConfig.save();refresh();
+            });
+        }
+        if(height>y+226) {
+            addRenderableWidget(new ShatsuLevelSlider(x,y+166,w,"ASMR LIQUIDS",
+                cfg.categoryVolumes.getOrDefault("liquids",1f),
+                v->cfg.setCategory("liquids",(float)v)));
+            addRenderableWidget(new ShatsuLevelSlider(x,y+191,w,"MAGICAL ACCENTS",
+                cfg.categoryVolumes.getOrDefault("magic",1f),
+                v->cfg.setCategory("magic",(float)v)));
+        }
+        if(height > y+250) {
+            String info="Food & drink swaps: "+ShatsuFoodAudio.localMatches()+" local / "+
+                ShatsuFoodAudio.remoteMatches()+" network / "+ShatsuFoodAudio.missingEvents()+" missing";
+            action(x,height-54,w,18,info,()->status=ShatsuFoodAudio.lastProfile());
         }
     }
 
+    /** Auditable side-by-side listening without changing persistent sound configs. */
+    private void comparisonStudio(int x,int y,int w) {
+        String[][] sounds={
+            {"Wood block break","shatsuv7:block.wood.break","minecraft:block.wood.break"},
+            {"Bow release","shatsufresh:preview.premium.bow.shoot","shatsufresh:preview.asmr.bow.release"},
+            {"Crossbow release","shatsufresh:preview.premium.crossbow.shoot","shatsufresh:preview.asmr.crossbow.release"},
+            {"Trident throw","shatsufresh:preview.premium.trident.throw","shatsufresh:preview.asmr.trident.throw"},
+            {"Honey drink","shatsufresh:preview.food.honey","shatsu_liquids:drink.honey"},
+            {"Water bucket","shatsuv7:block.water.place","minecraft:item.bucket.empty"},
+            {"Lava bucket","minecraft:item.bucket.fill_lava","minecraft:item.bucket.empty_lava"}
+        };
+        comparePage=Math.max(0,Math.min(comparePage,sounds.length-1));
+        String[] cur=sounds[comparePage];
+        action(x,y,w,23,cur[0]+"  ("+(comparePage+1)+"/"+sounds.length+")",()->{comparePage=(comparePage+1)%sounds.length;refresh();});
+        int col=(w-6)/2;
+        action(x,y+33,col,27,"Play original",()->preview(cur[1]));
+        action(x+col+6,y+33,col,27,"Play Shatsu ASMR",()->preview(cur[2]));
+        action(x,y+68,col,22,"< Previous",()->{comparePage=(comparePage+sounds.length-1)%sounds.length;refresh();});
+        action(x+col+6,y+68,col,22,"Next >",()->{comparePage=(comparePage+1)%sounds.length;refresh();});
+        action(x,y+103,w,22,
+            "Favorite current effect: "+(ShatsuConfig.current().isFavorite(cur[2])?"YES":"NO"),()->{
+                ShatsuConfig.current().toggleFavorite(cur[2]);refresh();
+            });
+        if(height>y+177) {
+            action(x,y+135,w,22,"Open full sound mixer",()->tab(2));
+            action(x,y+162,w,22,"Check missing events in Coverage Scanner",()->tab(7));
+        }
+    }
+
+    /** Incremental verification; 512 events per click avoids freezes on older PCs. */
+    private void coverageScanner(int x,int y,int w) {
+        action(x,y,w,23,"Scan next 512 event registrations",this::scanNextBatch);
+        action(x,y+28,w,20,"Checked "+scanned+"/"+ShatsuCatalog.size()+" · Missing "+missingSoundIDs.size(),
+            this::scanNextBatch);
+        action(x,y+53,w,20,"Restart coverage scan",()->{
+            scanCursor=0;scanned=0;missingSoundIDs.clear();refresh();
+        });
+        boolean ans=FabricLoader.getInstance().isModLoaded("ans");
+        action(x,y+82,w,23,ans?"Actions & Beyond detected · ANS sound events protected":
+            "Actions & Beyond not installed · Vanilla animal voices untouched",
+            ()->{status=ans?"Shatsu does not alter ans: event audio.":"No Actions & Beyond detected.";});
+        int count=Math.min(4,missingSoundIDs.size());
+        for(int i=0;i<count;i++) {
+            String id=missingSoundIDs.get(missingSoundIDs.size()-1-i);
+            action(x,y+113+i*25,w,22,id.length()>60?id.substring(0,57)+"...":id,
+                ()->{status="Unavailable sound event "+id;});
+        }
+    }
+
+    private void scanNextBatch() {
+        var manager=Minecraft.getInstance().getSoundManager();
+        List<ShatsuCatalog.Entry> catalog=ShatsuCatalog.all();
+        int end=Math.min(scanCursor+512,catalog.size());
+        for(int i=scanCursor;i<end;i++) {
+            String id=catalog.get(i).id();
+            try {
+                var sound=manager.getSoundEvent(Identifier.parse(id));
+                if(sound==null||sound.getWeight()<=0) missingSoundIDs.add(id);
+            } catch(RuntimeException ex) {
+                missingSoundIDs.add(id);
+            }
+        }
+        scanned=end;scanCursor=end;
+        status=end==catalog.size()?"Coverage scan finished":"Scanned "+end+" events";
+        refresh();
+    }
+
     private void presets(int x, int y, int w) {
-        String[] names = {"Balanced", "Soft ASMR", "Crisp & Tactile", "Immersive", "Combat Focus", "Minimal"};
+        String[] names = {"Balanced", "Soft ASMR", "ASMR Woodland", "Fantasy Whisper", "Crisp & Tactile", "Immersive", "Combat Focus", "Minimal"};
         int step = Math.max(23, Math.min(29, (height - y - 40) / names.length));
         for (int i = 0; i < names.length; i++) {
             String name = names[i];
@@ -249,7 +339,7 @@ public final class ShatsuScreen extends Screen {
         action(x, y, w, 20, "Catalog: " + ShatsuCatalog.size() + " loaded sound events",
             () -> tab(1));
         String[] mods = {"clangor", "sound", "customblocksounds", "fabric-api",
-                          "modmenu", "sound_physics_remastered"};
+                          "modmenu", "sound_physics_remastered", "ans"};
         for (int i = 0; i < mods.length && y + 25 + i * 22 < height - 100; i++) {
             String id = mods[i];
             boolean loaded = FabricLoader.getInstance().isModLoaded(id);
