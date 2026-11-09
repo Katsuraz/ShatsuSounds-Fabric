@@ -65,7 +65,7 @@ public final class ShatsuConfig {
             if (id.endsWith(".place")) return "block_place";
             return "block_other";
         }
-        if (id.contains("experience_orb") || id.contains("totem")) return "magic";
+        if (id.contains("experience_orb") || id.contains("levelup") || id.contains("totem")) return "magic";
         if (id.contains("shield")) return "combat";
         if (id.contains("inventory") || id.contains("typing") || id.contains("item_click") || id.contains("item_drag")) return "inventory";
         if (id.contains("step") || id.contains("landing") || id.contains("swim")) return "movement";
