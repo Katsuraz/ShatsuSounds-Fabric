@@ -20,6 +20,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Shatsu-Sound-Lab-Vanilla-26.3-Registry
+          path: tools/sound_lab/vanilla_sound_registry_26_3.json
+          if-no-files-found: error
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
