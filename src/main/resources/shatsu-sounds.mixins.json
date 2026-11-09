@@ -7,7 +7,8 @@
     "SoundEngineMixin",
     "ShatsuConsumableSoundMixin",
     "ShatsuRemoteFoodSoundMixin",
-    "ShatsuInventoryScreenMixin"
+    "ShatsuInventoryScreenMixin",
+    "ShatsuCreativeInventoryScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 0
