@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class ShatsuInventoryScreenMixin {
     @Shadow protected AbstractContainerMenu menu;
 
-    @Inject(method = "slotClicked", at = @At("HEAD"), require = 0)
+    @Inject(method = "slotClicked(Lnet/minecraft/world/inventory/Slot;IILnet/minecraft/world/inventory/ContainerInput;)V", at = @At("HEAD"), require = 1)
     private void shatsu$inventorySound(Slot slot, int slotId, int mouseButton,
                                        ContainerInput clickType, CallbackInfo ci) {
         ShatsuInventoryAudio.clicked(slot, menu.getCarried(), clickType, mouseButton);
