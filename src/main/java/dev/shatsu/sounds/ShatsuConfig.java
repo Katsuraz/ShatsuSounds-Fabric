@@ -83,6 +83,8 @@ public final class ShatsuConfig {
     }
     public float multiplier(String id) {
         // Do not modify arbitrary other mods or vanilla mob-voice sounds.
+        // Never chain our gain changes onto Actions & Beyond sounds.
+        if (actionsBeyondCompatibility && FabricLoader.getInstance().isModLoaded("ans") && id.startsWith("ans:")) return 1f;
         if (!ShatsuCatalog.contains(id)) return 1f;
         if (Boolean.FALSE.equals(enabled.get(id))) return 0f;
         return clamp(master) * clamp(categoryVolumes.getOrDefault(category(id),1f)) *
