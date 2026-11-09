@@ -198,11 +198,11 @@ public final class ShatsuScreen extends Screen {
     /** Three-page preview studio: all controls use real event IDs. */
     private void soundLab(int x, int y, int w) {
         ShatsuConfig cfg = ShatsuConfig.current();
-        int third=(w-8)/3;
-        for(int i=0;i<3;i++) {
+        int third=(w-16)/5;
+        for(int i=0;i<5;i++) {
             final int selected=i;
             String name = (labPage==i ? "● " : "") +
-                new String[]{"Gear","Liquids","Enchant"}[i];
+                new String[]{"Gear","Liquids","Enchant","Mobs","Inventory"}[i];
             action(x+i*(third+4),y,third,21,name,()->{labPage=selected;refresh();});
         }
         int col=(w-6)/2, y0=y+27;
@@ -231,7 +231,7 @@ public final class ShatsuScreen extends Screen {
             action(x,y0+107,w,22,"Individual drinking: "+(cfg.drinkAudioEnabled?"ON":"OFF"),()->{
                 cfg.drinkAudioEnabled=!cfg.drinkAudioEnabled;ShatsuConfig.save();refresh();
             });
-        } else {
+        } else if (labPage==2) {
             action(x,y0,col,22,"Golden apple",()->preview("shatsufresh:preview.asmr.magic.golden_apple"));
             action(x+col+6,y0,col,22,"Enchanted apple",()->preview("shatsufresh:preview.asmr.magic.enchanted_apple"));
             action(x,y0+26,col,22,"Golden carrot",()->preview("shatsufresh:preview.asmr.magic.golden_carrot"));
@@ -242,6 +242,29 @@ public final class ShatsuScreen extends Screen {
                 cfg.specialMagicEnabled=!cfg.specialMagicEnabled;ShatsuConfig.save();refresh();
             });
         }
+        } else if (labPage==3) {
+            action(x,y0,col,22,"Zombie growl",()->preview("minecraft:entity.zombie.ambient"));
+            action(x+col+6,y0,col,22,"Skeleton bones",()->preview("minecraft:entity.skeleton.ambient"));
+            action(x,y0+26,col,22,"Dragon roar",()->preview("minecraft:entity.ender_dragon.growl"));
+            action(x+col+6,y0+26,col,22,"Dragon wings",()->preview("minecraft:entity.ender_dragon.flap"));
+            action(x,y0+52,col,22,"Gentle cow",()->preview("minecraft:entity.cow.ambient"));
+            action(x+col+6,y0+52,col,22,"Cat purr",()->preview("minecraft:entity.cat.purr"));
+            action(x,y0+80,w,22,"Nature & folklore audio: "+(cfg.natureAudioEnabled?"ON":"OFF"),()->{
+                cfg.natureAudioEnabled=!cfg.natureAudioEnabled;ShatsuConfig.save();refresh();
+            });
+            action(x,y0+108,w,22,"Only real animals and folklore mobs / ANS voices protected",()->tab(7));
+        } else if (labPage==4) {
+            action(x,y0,col,22,"Pick up an item",()->preview("shatsufresh:inventory.move.pickup.metal"));
+            action(x+col+6,y0,col,22,"Put down an item",()->preview("shatsufresh:inventory.move.place.wooden"));
+            action(x,y0+26,col,22,"Swap inventory",()->preview("shatsufresh:inventory.move.swap.glass"));
+            action(x+col+6,y0+26,col,22,"Shift-transfer",()->preview("shatsufresh:inventory.move.transfer.crystal"));
+            action(x,y0+54,w,22,"Inventory movement: "+(cfg.inventoryAudioEnabled?"ON":"OFF"),()->{
+                cfg.inventoryAudioEnabled=!cfg.inventoryAudioEnabled;ShatsuConfig.save();refresh();
+            });
+            action(x,y0+82,w,22,"Actual inventory actions heard: "+ShatsuInventoryAudio.interactions(),()->{
+                status="Slot click hook plays action- and material-specific sounds.";
+            });
+            action(x,y0+109,w,22,"Inventory opening sound remains unchanged",()->{status="Approved inventory-opening sound protected";});
         if(height>y+226) {
             addRenderableWidget(new ShatsuLevelSlider(x,y+166,w,"ASMR LIQUIDS",
                 cfg.categoryVolumes.getOrDefault("liquids",1f),
