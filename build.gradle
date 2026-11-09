@@ -17,18 +17,28 @@ dependencies {
     compileOnly "com.terraformersmc:modmenu:${modmenu_version}"
     runtimeOnly "com.terraformersmc:modmenu:${modmenu_version}"
 }
+
+// Resilient to a large ZIP: GitHub uploads just one archive, while the build
+// supplies the repaired resources to Minecraft from inside the mod JAR.
+def uploadedShatsuPack = file('Shatsu_Satisfying_Sounds_v7.3_SOFT_GENERIC_HITS_EXPLOSIONS_26.3.zip')
+tasks.register('prepareShatsuAssets', Exec) {
+    inputs.file(uploadedShatsuPack)
+    inputs.file(file('scripts/prepare_audio.py'))
+    outputs.dir(layout.buildDirectory.dir('generated/shatsu-assets'))
+    commandLine 'python3', 'scripts/prepare_audio.py', uploadedShatsuPack.absolutePath,
+        layout.buildDirectory.dir('generated/shatsu-assets').get().asFile.absolutePath
+}
+
 processResources {
     inputs.property 'version', project.version
     filesMatching('fabric.mod.json') { expand 'version': project.version }
-    // The original v7.3 resource-pack ZIP is committed at repository root.
-    // Include its assets directly inside the Fabric JAR (no manual extraction).
-    def pack = file('Shatsu_Satisfying_Sounds_v7.3_SOFT_GENERIC_HITS_EXPLOSIONS_26.3.zip')
-    if (pack.isFile()) {
-        inputs.file(pack)
-        from(zipTree(pack)) {
-            include 'assets/**'
-            include 'pack.png'
-        }
+    // Stage the original v7.3 ZIP without modifying it in GitHub.
+    // Audio repair only touches mining-hit samples, hit mapping gain,
+    // and unclassified Clangor hits. All other user-approved audio is preserved.
+    dependsOn tasks.named('prepareShatsuAssets')
+    from(layout.buildDirectory.dir('generated/shatsu-assets')) {
+        include 'assets/**'
+        include 'pack.png'
     }
 }
 tasks.withType(JavaCompile).configureEach { options.release = 25 }
