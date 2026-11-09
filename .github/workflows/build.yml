@@ -24,7 +24,7 @@ jobs:
           java-version: '25'
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '9.6.0'
+          gradle-version: '9.8.1'
       - name: Validate repository source structure
         run: python3 scripts/check_project.py
       - name: Compile Fabric mod source
