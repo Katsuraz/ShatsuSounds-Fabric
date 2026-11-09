@@ -13,7 +13,7 @@ import java.util.Map;
 public final class ShatsuConfig {
     public static final String[] CATEGORIES = {
         "block_hit", "block_break", "block_place", "footsteps", "block_other",
-        "combat", "inventory", "movement", "environment", "interaction", "food", "other"
+        "combat", "inventory", "movement", "environment", "interaction", "food", "magic", "other"
     };
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path PATH = FabricLoader.getInstance().getConfigDir().resolve("shatsu-sounds/profile.json");
@@ -59,6 +59,8 @@ public final class ShatsuConfig {
             if (id.endsWith(".place")) return "block_place";
             return "block_other";
         }
+        if (id.contains("experience_orb") || id.contains("totem")) return "magic";
+        if (id.contains("shield")) return "combat";
         if (id.contains("inventory") || id.contains("typing") || id.contains("item_click") || id.contains("item_drag")) return "inventory";
         if (id.contains("step") || id.contains("landing") || id.contains("swim")) return "movement";
         if (id.contains("attack") || id.contains("hit") || id.contains("mace") || id.contains("weapon") || id.contains("trident") || id.contains("bow") || id.contains("spear")) return "combat";
@@ -78,12 +80,15 @@ public final class ShatsuConfig {
     public void setCategory(String category,float volume) { categoryVolumes.put(category,clamp(volume));save(); }
     public void setVolume(String id,float volume) { eventVolumes.put(id,clamp(volume));save(); }
     public void setEnabled(String id,boolean value) { enabled.put(id,value);save(); }
+    public void setPitch(String id,float value) { eventPitches.put(id,Math.max(.5f,Math.min(2f,value)));save(); }
+    public void resetEvent(String id) { enabled.remove(id);eventVolumes.remove(id);eventPitches.remove(id);save(); }
+    public void resetMixer() { master=1f;categoryVolumes.clear();eventVolumes.clear();eventPitches.clear();save(); }
     public void applyPreset(String name) {
         preset = name;
         master = 1f;
         categoryVolumes.clear();
         switch(name) {
-            case "Soft ASMR" -> { master=.7f; categoryVolumes.put("combat",.65f);categoryVolumes.put("inventory",.7f); }
+            case "Soft ASMR" -> { master=.7f; categoryVolumes.put("combat",.65f);categoryVolumes.put("inventory",.7f);categoryVolumes.put("magic",.65f); }
             case "Crisp & Tactile" -> { categoryVolumes.put("inventory",1.1f);categoryVolumes.put("block_hit",1.05f); }
             case "Immersive" -> { categoryVolumes.put("environment",1.1f);categoryVolumes.put("movement",1.1f); }
             case "Combat Focus" -> { categoryVolumes.put("combat",1.15f);categoryVolumes.put("inventory",.7f); }
