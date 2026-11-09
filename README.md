@@ -1,46 +1,43 @@
-# Shatsu Sounds — Minecraft Fabric 26.3
+# Shatsu Sounds — Fabric 26.3
 
-**v0.2.3 alpha: Optional third-party sound integrations**
+**v0.3.0 alpha · CC0 sound redesign + Cozy Sound Studio**
 
-This client-side mod bundles the approved Shatsu v7.3 sound library into one compiled Fabric JAR. The original resource-pack ZIP is stored in the repository and never changed; the Java 25/Gradle build creates an audio-enhanced copy inside the JAR.
+A client-side Minecraft Java 26.3 / Fabric mod with a bundled Shatsu soundscape. **Do not install old Shatsu resource packs above this mod** during testing; overlapping sound packs may defeat its overrides.
 
-## Requirements
+## Install
 
-Minecraft Java **26.3**, **Java 25**, **Fabric Loader** and **Fabric API**. The following three mods are **optional**; they enable additional functionality when installed:
+1. Install Java 25, a compatible Fabric Loader, Fabric API and Minecraft **26.3**.
+2. Download the latest **successful** v0.3.0 [GitHub Actions artifact](https://github.com/Katsuraz/ShatsuSounds-Fabric/actions). Extract its JAR into `.minecraft/mods`.
+3. Install [Mod Menu](https://modrinth.com/mod/modmenu) to open Shatsu's sound studio (optional but recommended).
+4. [Clangor](https://modrinth.com/mod/clangor), [Sounds](https://modrinth.com/mod/sound) and [Custom Block Sounds](https://modrinth.com/mod/custom-block-sounds) are **optional**. Each unlocks its own integration. Check their own dependency requirements if installing.
+5. [Sound Physics Remastered](https://modrinth.com/mod/sound-physics-remastered) is optional and uses its own configuration.
 
-- [Clangor](https://modrinth.com/mod/clangor) — weapon, selection, swing and impact sounds
-- [Sounds](https://modrinth.com/mod/sound) — item/inventory/UI sound support
-- [Custom Block Sounds](https://modrinth.com/mod/custom-block-sounds) — block-specific hit, break, place, step and fall
+## v0.3 changes
 
-If you choose to install those optional mods, also install whatever dependencies Fabric reports for them. **Mod Menu** is optional, but installing it is recommended to open Shatsu's configuration GUI. **Sound Physics Remastered** remains optional.
+- **Weapons:** Recorded longbow shots and draws; crossbow loading/locking/firing and bolt impacts; arrows; trident throw/impact/ground/return; distinct sword and axe swing/equip styles for eight material families.
+- **Shield:** Separate ready, block and break sounds. Shield raise is handled by Shatsu's client hook; vanilla block impacts remain separate.
+- **Mace:** Weighted swing and equip; distinct contact, critical, air-smash, ground-smash and heavy-smash treatments. Wind Burst remains independent.
+- **Armor:** New leather, chainmail, iron, gold, diamond, netherite, copper, turtle, elytra, wolf and nautilus materials.
+- **Food and drinks:** New dry/cooked/soft/crispy food categories, short real swallows, potion-bottle handling, honey and milk sounds. Generic Minecraft eating/drinking events have limitations: item-specific profiles only play when an item-aware integration triggers their corresponding sound events.
+- **XP & Totem:** Gentle, quieter XP pickups; cozy totem inventory pickup mapped in the Sounds item-rule definitions. The dramatic life-saving totem-use effect remains separate.
+- **Cozy Studio:** forest-toned background, warm highlights, real draggable master/category sliders, sound-library search and previews, per-event volume/pitch overrides, reset buttons and paged categories.
 
-These are client mods; Shatsu does not require installation on dedicated servers.
+## Quality checks and known limitations
 
-## What's new in v0.2.2 alpha
+GitHub Actions assembles all **166 curated CC0 mono OGG recordings** from nine audited text chunks at `audio/shatsu_v03/`. The SHA-256 is checked before packaging. The build pipeline then applies the resource mappings on top of the older Shatsu v7.3 pack, without modifying its original ZIP.
 
-- **Block placement:** Replaces previous and inconsistent placement audio with **66 newly synthesized mono effects** across 33 material families, wired to both vanilla and all 1,047 Custom Block Sounds mappings. Independently adjustable place mixer. No old placement variants in the generated sound mappings.
-- **Wood breaking:** Three new short, muted wood-snap recordings replace the previous heavy breaking samples for wood-based blocks; placement, mining hits and footsteps remain separate.
-- **Magical ASMR:** Three new gentle rising XP pickup sounds and three original magical Totem of Undying effects. No old coin-like XP samples.
-- **Bow and trident:** Sharper release, draw, throw and impact samples without the previous playful tone. Specialized mace effects and your approved weapon audio remain.
-- **Shield raise:** A new client-side trigger plays a restrained shield-ready sound when blocking begins, independently from the vanilla shield-block impact. Short cooldown prevents spam.
-- **Minimal Sound Studio:** Compact five-tab interface with searchable sound library, 13 category filters, per-sound volume, pitch, enable/disable and reset controls, paged audio mixer, audio presets and diagnostic test buttons.
-- **Dependencies:** Clangor, Sounds and Custom Block Sounds now declared optional in `fabric.mod.json`. Mod Menu and Sound Physics remain optional.
-- **Preservation:** Vanilla mob voices, approved inventory-opening chime, drinking, fireworks, Ender Pearl teleport, custom mace effects, and other approved sounds are not intentionally modified.
+Tests validate sound file references, mono encoding, vanilla and Clangor mappings, material preservation, and the final JAR. **Successful compilation is not in-game verification**. Playtest bow/crossbow/trident and their projectile events, mace smashes, shield raising, armor equips, totem inventory pickup (with Sounds installed), new food sounds and the Mod Menu sliders. The current build does not yet add a dedicated client-side hook for live projectile flyby audio; those samples exist for preview and future positional playback. Nor does it guarantee unique eating noises by item without an appropriate item-aware playback integration.
 
-## Install and test
+A separate full Shatsu pack or another mod's sound overrides can cause duplicate/old sound effects. Disable old packs first. Keep original mob voices unchanged.
 
-1. Open [GitHub Actions](https://github.com/Katsuraz/ShatsuSounds-Fabric/actions) and download the latest **successful** v0.2.2 artifact.
-2. Extract the artifact and put the JAR in `.minecraft/mods` with Fabric API and all the required mods above.
-3. **Disable older Shatsu full resource packs and overlays** to avoid competing sound definitions.
-4. For best results, open **Mod Menu → Shatsu Sounds → Home/Library/Mixer/Presets/Tools**.
-5. Compare placing stone, wood, gravel and glass; breaking wood; picking up XP; triggering a Totem; drawing a bow, throwing a trident, and raising a shield.
+## Audio sources and licensing
 
-## Development and QA
+The new recorded samples are processed derivatives of CC0 sound effect libraries submitted to [OpenGameArt](https://opengameart.org): Medieval Weapon Textures and Weapon Impacts (Ben Jaszczak/Brian Nelson), Swishes and RPG Sound Pack (artisticdude), Fantasy Weapons and Apparel (Vehicle), Liquid Bottle Drink Set (qubodup), and the cucumber/toast crunches (cogitollc). We thank their creators. Project source code and legacy sounds may have separate licenses; review all distribution rights before publishing a stable release.
 
-- `scripts/prepare_audio.py`: stages v7.3 ZIP, repairs quiet mining hits and ordinary-item hit fallback, and generates the searchable catalog.
-- `scripts/polish_audio.py`: original synthesized XP, totem, bow, trident, wood and shield samples and events.
-- `scripts/placement_polish.py`: original 33-family placement samples replacing legacy variants.
-- `scripts/test_sound_repair.py` / `scripts/test_sound_polish.py`: resource, sound-map and dependency regression tests.
-- `.github/workflows/build.yml`: builds with Java 25, FFmpeg, tests, and validates real bundled audio in the final JAR.
+## Developer files
 
-**Important:** A passing GitHub Actions build validates compilation, files and mappings, not actual Minecraft sound playback or mod interaction. Please report any unexpected double sound with a video and `latest.log`; another enabled resource pack or Sounds-mod setting may play an additional effect even if Shatsu mappings are fixed. This mod does **not** change third-party configuration files or Sound Physics Remastered settings automatically. Redistribution rights for source recordings still need review before a public stable release.
+- `scripts/assemble_recorded_audio.py`: validates/reconstitutes CC0 OGG bundle
+- `scripts/apply_recorded_audio.py`: applies new sound events and inventory totem override
+- `scripts/prepare_audio.py`, `scripts/polish_audio.py`, `scripts/placement_polish.py`: existing non-destructive sound pipeline
+- `scripts/test_recorded_audio.py`, `scripts/test_sound_polish.py`, `scripts/test_sound_repair.py`: CI tests
+- `src/main/java/dev/shatsu/sounds/client/ShatsuScreen.java`: Cozy Sound Studio GUI
