@@ -11,7 +11,7 @@ class RecordedAudioTests(unittest.TestCase):
   cls.preview=json.loads((ROOT/'shatsufresh/sounds.json').read_text('utf8'))
  def test_recordings_and_mono(self):
   files=list((ROOT/'shatsufresh/sounds').rglob('*.ogg'))
-  self.assertEqual(len(files),369) # 166 original + 102 tool + 101 premium XP/weapon/food samples
+  self.assertEqual(len(files),425) # plus 56 ASMR liquid, wood, ranged and magic variants
   for p in files:
    self.assertGreater(p.stat().st_size,300,str(p))
   for p in (files[0],files[-1],next(x for x in files if 'mace/' in str(x)),
@@ -80,6 +80,25 @@ class RecordedAudioTests(unittest.TestCase):
   for sound in xp:
    self.assertTrue(sound['name'].startswith('shatsufresh:premium/magic/experience/'))
   self.assertEqual(len(self.mc['entity.player.levelup']['sounds']),3)
+ def test_asmr_buckets_drinks_and_magic(self):
+  for material in ('water','lava'):
+   for action in ('fill','empty'):
+    event='item.bucket.'+action+('_lava' if material=='lava' else '')
+    value=self.mc[event]['sounds']
+    self.assertEqual(len(value),4,event)
+    self.assertTrue(value[0]['name'].startswith('shatsufresh:asmr/bucket/'+material+'/'+action+'/'))
+  liquid=json.loads((ROOT/'shatsu_liquids/sounds.json').read_text('utf8'))
+  for item in ('honey','milk','potion','water'):
+   self.assertEqual(len(liquid['drink.'+item]['sounds']),4)
+   for i in (1,2,3,4):
+    self.assertTrue((ROOT/'shatsufresh/sounds/asmr/drink'/item/f'{i}.ogg').is_file())
+  for item in ('golden_apple','enchanted_apple','golden_carrot','chorus_fruit'):
+   self.assertIn('preview.asmr.magic.'+item,self.preview)
+  self.assertEqual(len(self.mc['block.wood.break']['sounds']),4)
+ def test_asmr_sound_catalog_categories(self):
+  cat=json.loads((ROOT.parent/'shatsu_catalog.json').read_text('utf8'))
+  self.assertIn({'id':'shatsu_liquids:drink.honey','category':'liquids',
+                 'variations':4,'namespace':'shatsu_liquids'},cat)
  def test_weapon_chain(self):
   for id in ('entity.arrow.shoot','entity.arrow.hit','entity.arrow.hit_player',
              'item.crossbow.shoot','item.crossbow.loading_start',
