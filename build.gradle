@@ -20,12 +20,15 @@ dependencies {
 processResources {
     inputs.property 'version', project.version
     filesMatching('fabric.mod.json') { expand 'version': project.version }
-    // GitHub Web can upload this 14.5 MiB original archive as ONE file.
-    // Gradle extracts it into the JAR without changing the repository's text source.
-    def pack = file('audio/ShatsuSounds_v7.3_assets_only.zip')
+    // The original v7.3 resource-pack ZIP is committed at repository root.
+    // Include its assets directly inside the Fabric JAR (no manual extraction).
+    def pack = file('Shatsu_Satisfying_Sounds_v7.3_SOFT_GENERIC_HITS_EXPLOSIONS_26.3.zip')
     if (pack.isFile()) {
         inputs.file(pack)
-        from(zipTree(pack))
+        from(zipTree(pack)) {
+            include 'assets/**'
+            include 'pack.png'
+        }
     }
 }
 tasks.withType(JavaCompile).configureEach { options.release = 25 }
