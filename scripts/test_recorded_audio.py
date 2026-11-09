@@ -11,7 +11,7 @@ class RecordedAudioTests(unittest.TestCase):
   cls.preview=json.loads((ROOT/'shatsufresh/sounds.json').read_text('utf8'))
  def test_recordings_and_mono(self):
   files=list((ROOT/'shatsufresh/sounds').rglob('*.ogg'))
-  self.assertEqual(len(files),166)
+  self.assertEqual(len(files),268) # 166 curated recordings + 102 tool-specific processed variants
   for p in files:
    self.assertGreater(p.stat().st_size,300,str(p))
   for p in (files[0],files[-1],next(x for x in files if 'mace/' in str(x)),
@@ -30,6 +30,25 @@ class RecordedAudioTests(unittest.TestCase):
      self.assertTrue((ROOT/'shatsufresh/sounds'/f'{rel}.ogg').is_file(),(event,name))
      total+=1
   self.assertGreater(total,150)
+ def test_tool_family_audio(self):
+  for tool in ('pickaxe','shovel','hoe'):
+   for mat in ('wooden','stone','copper','iron','gold','diamond','netherite','general'):
+    for action in ('swing','select'):
+     event=f'{action}.{tool}.{mat}'
+     self.assertIn(event,self.clang)
+     sounds=self.clang[event]['sounds']
+     self.assertEqual(len(sounds),2,event)
+     self.assertGreaterEqual(sounds[0]['volume'],0.90,event)
+     for i in (1,2):
+      self.assertTrue((ROOT/'shatsufresh/sounds'/f'tool/{tool}/{action}/{mat}/{i}.ogg').exists())
+   for kind in ('weak','strong','crit','knockback','sweep'):
+    event=f'hit.weapon_n_tool.{tool}.{kind}'
+    self.assertTrue(self.clang[event]['sounds'][0]['name'].startswith(f'shatsufresh:tool/{tool}/impact/'))
+ def test_quieter_approved_voices_are_not_replaced(self):
+  # Preserving the approved milk/honey/potion sources and vanilla mob voices
+  for event in ('food.honey','food.milk','food.potion'):
+   self.assertTrue(self.food[event]['sounds'][0]['name'].startswith('shatsufresh:food/'))
+  self.assertFalse(any(k.startswith('entity.zombie.') for k in self.preview))
  def test_weapon_chain(self):
   for id in ('entity.arrow.shoot','entity.arrow.hit','entity.arrow.hit_player',
              'item.crossbow.shoot','item.crossbow.loading_start',
