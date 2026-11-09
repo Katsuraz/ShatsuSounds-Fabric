@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Validate Java source structure and the optional v7.3 audio bundle."""
 import json
+import hashlib
 import zipfile
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,6 +16,8 @@ for mixin in metadata.get('mixins',[]):
     assert (resources/mixin).is_file(),f'Missing mixin descriptor: {mixin}'
 bundle=ROOT/'audio/ShatsuSounds_v7.3_assets_only.zip'
 if bundle.is_file():
+    expected='5075b3d3d606409f95e97cb61da81246ac3c011f9de7bc35b59042b372debc36'
+    assert hashlib.sha256(bundle.read_bytes()).hexdigest()==expected, 'Audio bundle checksum mismatch'
     with zipfile.ZipFile(bundle) as archive:
         assert archive.testzip() is None,'Damaged audio archive'
         names=archive.namelist()
