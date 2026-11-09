@@ -23,6 +23,6 @@ public abstract class ShatsuInventoryScreenMixin {
     @Inject(method = "slotClicked", at = @At("HEAD"), require = 0)
     private void shatsu$inventorySound(Slot slot, int slotId, int mouseButton,
                                        ContainerInput clickType, CallbackInfo ci) {
-        ShatsuInventoryAudio.clicked(slot, menu.getCarried(), clickType);
+        ShatsuInventoryAudio.clicked(slot, menu.getCarried(), clickType, mouseButton);
     }
 }
