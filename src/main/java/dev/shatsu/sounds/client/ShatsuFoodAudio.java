@@ -12,6 +12,11 @@ import net.minecraft.world.item.ItemStack;
 public final class ShatsuFoodAudio {
     private ShatsuFoodAudio() {}
 
+    public static boolean hasProfile(ItemStack stack) {
+        return stack != null && !stack.isEmpty()
+            && profile(BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath()) != null;
+    }
+
     public static SoundEvent select(ItemStack stack, SoundEvent original) {
         if (stack == null || stack.isEmpty()) return original;
         String item = BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
