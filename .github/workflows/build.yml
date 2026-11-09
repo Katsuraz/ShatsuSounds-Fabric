@@ -20,6 +20,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Shatsu-Sound-Lab-Vanilla-26.3-Registry
+          path: tools/sound_lab/vanilla_*_registry_26_3.json
+          if-no-files-found: error
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -51,34 +56,67 @@ jobs:
         run: gradle build --stacktrace
       - name: Test block hits and non-special item fallback
         run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
-      - name: Verify repaired sounds are inside the actual JAR
+      - name: Verify the actual 0.5.2 JAR uses only referenced audio
         run: |
           python3 - <<'PY'
-          import pathlib, zipfile
+          import json, pathlib, zipfile
           jars = [x for x in pathlib.Path('build/libs').glob('*.jar') if '-sources' not in x.name]
           assert jars, 'No compiled Fabric JAR'
           for jar in jars:
               with zipfile.ZipFile(jar) as z:
-                  names=set(z.namelist())
-                  for item in ('fabric.mod.json', 'shatsu_catalog.json', 'assets/minecraft/sounds.json',
-                               'assets/shatsu4/sounds.json', 'assets/clangor/sounds.json',
-                               'assets/customblocksounds/config/blockmap.json',
-                               'assets/shatsuv7/sounds/block/stone/hit_1.ogg',
-                               'assets/shatsupolish/sounds.json',
-                               'assets/shatsupolish/sounds/magic/xp/1.ogg',
-                               'assets/shatsupolish/sounds/weapons/shield_raise/1.ogg',
-                               'assets/shatsufresh/sounds.json',
-                               'assets/shatsufresh/sounds/mace/hit/1.ogg',
-                               'assets/shatsufresh/sounds/food/drink/1.ogg'):
-                      assert item in names, (jar, item)
-                  assert sum(x.endswith('.ogg') for x in names) >= 2300, (jar, 'missing OGGs')
-                  print('JAR validated:', jar, len(names), 'packaged files')
+                  names = set(z.namelist())
+                  must = (
+                      'fabric.mod.json', 'shatsu_catalog.json',
+                      'shatsu_inventory_profiles.json',
+                      'dev/shatsu/sounds/client/ShatsuInventoryProfiles.class',
+                      'assets/shatsufresh/sounds.json',
+                      'assets/minecraft/sounds.json',
+                      'assets/customblocksounds/config/blockmap.json'
+                  )
+                  assert all(p in names for p in must), [p for p in must if p not in names]
+                  defined = {}
+                  for name in (n for n in names if n.endswith('/sounds.json')):
+                      ns = name.split('/')[1]
+                      defined[ns] = json.loads(z.read(name))
+                  fresh = defined['shatsufresh']
+                  assert 'inventory.move.pickup.enchanted_apple' in fresh
+                  assert 'inventory.move.place.sculk_sensor' in fresh
+                  assert 'inventory.move.split.snowball' in fresh
+                  assert 'inventory.move.drop.music_disc' in fresh
+                  oggs = {p for p in names if p.endswith('.ogg')}
+                  assert len(oggs) >= 1700, len(oggs)
+                  missing=[]
+                  referenced=set()
+                  for ns,events in defined.items():
+                      for event,v in events.items():
+                          if not isinstance(v,dict):continue
+                          for entry in v.get('sounds',[]):
+                              if isinstance(entry,str):n,kind=entry,'file'
+                              elif isinstance(entry,dict):n,kind=entry.get('name',''),entry.get('type','file')
+                              else:continue
+                              if kind=='event':continue
+                              nsp,rel=n.split(':',1) if ':' in n else ('minecraft',n)
+                              filename='assets/'+nsp+'/sounds/'+rel+'.ogg'
+                              if filename in oggs:referenced.add(filename)
+                              elif nsp!='minecraft' or rel.startswith('shatsu/'):
+                                  missing.append((ns,event,filename))
+                  assert not missing, missing[:20]
+                  orphan = [n for n in oggs if n not in referenced and
+                            not any(x in n for x in ('firework','inventory/open','ui/open'))]
+                  assert not orphan, orphan[:20]
+                  print('JAR validated:', jar, len(names), 'total entries,',
+                        len(oggs), 'OGGs,',len(referenced),'referenced sounds')
           PY
       - name: Label asset state
         id: assets
-        run: echo "artifact=ShatsuSounds-v0.4.0-ALPHA-ASMR-ACTIONS-COMPAT" >> "$GITHUB_OUTPUT"
+        run: echo "artifact=ShatsuSounds-v0.5.2-ALPHA-AUDIO-CLEANUP" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.assets.outputs.artifact }}
           path: build/libs/*.jar
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ShatsuSounds-v0.5.2-ARCHIVED-UNUSED-AUDIO
+          path: build/generated/shatsu-v052-unused-audio.zip
           if-no-files-found: error

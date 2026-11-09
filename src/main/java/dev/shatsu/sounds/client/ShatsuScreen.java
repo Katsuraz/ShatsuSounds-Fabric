@@ -23,6 +23,7 @@ import java.util.Locale;
 public final class ShatsuScreen extends Screen {
     private final Screen previous;
     private String query = "";
+    private String inventoryItemId = "minecraft:enchanted_golden_apple";
     private String status = "";
     private int tab = 0, filter = 0, page = 0, mixerPage = 0, labPage = 0, comparePage = 0;
     private int scanCursor = 0, scanned = 0;
@@ -198,11 +199,11 @@ public final class ShatsuScreen extends Screen {
     /** Three-page preview studio: all controls use real event IDs. */
     private void soundLab(int x, int y, int w) {
         ShatsuConfig cfg = ShatsuConfig.current();
-        int third=(w-8)/3;
-        for(int i=0;i<3;i++) {
+        int third=(w-16)/5;
+        for(int i=0;i<5;i++) {
             final int selected=i;
             String name = (labPage==i ? "● " : "") +
-                new String[]{"Gear","Liquids","Enchant"}[i];
+                new String[]{"Gear","Liquids","Enchant","Mobs","Inventory"}[i];
             action(x+i*(third+4),y,third,21,name,()->{labPage=selected;refresh();});
         }
         int col=(w-6)/2, y0=y+27;
@@ -231,7 +232,7 @@ public final class ShatsuScreen extends Screen {
             action(x,y0+107,w,22,"Individual drinking: "+(cfg.drinkAudioEnabled?"ON":"OFF"),()->{
                 cfg.drinkAudioEnabled=!cfg.drinkAudioEnabled;ShatsuConfig.save();refresh();
             });
-        } else {
+        } else if (labPage==2) {
             action(x,y0,col,22,"Golden apple",()->preview("shatsufresh:preview.asmr.magic.golden_apple"));
             action(x+col+6,y0,col,22,"Enchanted apple",()->preview("shatsufresh:preview.asmr.magic.enchanted_apple"));
             action(x,y0+26,col,22,"Golden carrot",()->preview("shatsufresh:preview.asmr.magic.golden_carrot"));
@@ -241,8 +242,54 @@ public final class ShatsuScreen extends Screen {
             action(x,y0+81,w,22,"Quiet enchantment accents: "+(cfg.specialMagicEnabled?"ON":"OFF"),()->{
                 cfg.specialMagicEnabled=!cfg.specialMagicEnabled;ShatsuConfig.save();refresh();
             });
+        } else if (labPage==3) {
+            action(x,y0,col,22,"Zombie growl",()->preview("minecraft:entity.zombie.ambient"));
+            action(x+col+6,y0,col,22,"Skeleton bones",()->preview("minecraft:entity.skeleton.ambient"));
+            action(x,y0+26,col,22,"Dragon roar",()->preview("minecraft:entity.ender_dragon.growl"));
+            action(x+col+6,y0+26,col,22,"Dragon wings",()->preview("minecraft:entity.ender_dragon.flap"));
+            action(x,y0+52,col,22,"Gentle cow",()->preview("minecraft:entity.cow.ambient"));
+            action(x+col+6,y0+52,col,22,"Cat purr",()->preview("minecraft:entity.cat.purr"));
+            action(x,y0+80,w,22,"Creature presence: "+Math.round(cfg.mobAudioIntensity*100)+"%",()->{
+                cfg.mobAudioIntensity = cfg.mobAudioIntensity < .75f ? .85f :
+                    (cfg.mobAudioIntensity < 1.05f ? 1.20f : .60f);
+                ShatsuConfig.save();refresh();
+            });
+            action(x,y0+108,w,22,"Only real animals and folklore mobs / ANS voices protected",()->tab(7));
+        } else if (labPage==4) {
+            EditBox item = new EditBox(font,x,y0,w-75,20,Component.literal("Minecraft item ID"));
+            item.setValue(inventoryItemId);
+            item.setHint(Component.literal("minecraft:enchanted_golden_apple"));
+            item.setResponder(value -> inventoryItemId=value.trim());
+            addRenderableWidget(item);
+            action(x+w-71,y0,71,20,"SELECT",()->{
+                status="Inventory sound profile: "+ShatsuInventoryProfiles.forId(inventoryItemId);
+                refresh();
+            });
+            String[] types={"pickup","place","swap","split","transfer","drop"};
+            for(int i=0;i<types.length;i++) {
+                final String actionType=types[i];
+                int yy=y0+26+(i/2)*26;
+                action(x+(i%2)*(col+6),yy,col,22,
+                    actionType.toUpperCase(Locale.ROOT),()->{
+                        String category=ShatsuInventoryProfiles.forId(inventoryItemId);
+                        preview("shatsufresh:inventory.move."+actionType+"."+category);
+                        status=inventoryItemId+" / "+actionType+" / "+category;
+                    });
+            }
+            action(x,y0+109,w,22,"Inventory movement: "+(cfg.inventoryAudioEnabled?"ON":"OFF"),()->{
+                cfg.inventoryAudioEnabled=!cfg.inventoryAudioEnabled;ShatsuConfig.save();refresh();
+            });
+            action(x,y0+136,w,22,"Slot clicks: "+ShatsuInventoryAudio.hookHits()+
+                    " / Played: "+ShatsuInventoryAudio.interactions()+
+                    " / Missing: "+ShatsuInventoryAudio.missingEvents(),()->{
+                status=ShatsuInventoryAudio.lastEvent(); refresh();
+            });
+            if(height>y0+195)
+                action(x,y0+161,w,22,"Inventory-opening sound stays protected",()->{
+                    status="Approved inventory opening audio unchanged";
+                });
         }
-        if(height>y+226) {
+        if(labPage!=4 && height>y+226) {
             addRenderableWidget(new ShatsuLevelSlider(x,y+166,w,"ASMR LIQUIDS",
                 cfg.categoryVolumes.getOrDefault("liquids",1f),
                 v->cfg.setCategory("liquids",(float)v)));
@@ -266,7 +313,10 @@ public final class ShatsuScreen extends Screen {
             {"Trident throw","shatsufresh:preview.premium.trident.throw","shatsufresh:preview.asmr.trident.throw"},
             {"Honey drink","shatsufresh:preview.food.honey","shatsu_liquids:drink.honey"},
             {"Water bucket","shatsuv7:block.water.place","minecraft:item.bucket.empty"},
-            {"Lava bucket","minecraft:item.bucket.fill_lava","minecraft:item.bucket.empty_lava"}
+            {"Lava bucket","minecraft:item.bucket.fill_lava","minecraft:item.bucket.empty_lava"},
+            {"Sculk breaking","shatsuv7:block.sculk.break","minecraft:block.sculk.break"},
+            {"Inventory metal move","shatsuv7:inventory.metal","shatsufresh:inventory.move.pickup.metal"},
+            {"Inventory wood move","shatsuv7:inventory.wooden","shatsufresh:inventory.move.place.wooden"}
         };
         comparePage=Math.max(0,Math.min(comparePage,sounds.length-1));
         String[] cur=sounds[comparePage];

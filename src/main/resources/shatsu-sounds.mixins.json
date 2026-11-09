@@ -6,7 +6,9 @@
   "client": [
     "SoundEngineMixin",
     "ShatsuConsumableSoundMixin",
-    "ShatsuRemoteFoodSoundMixin"
+    "ShatsuRemoteFoodSoundMixin",
+    "ShatsuInventoryScreenMixin",
+    "ShatsuCreativeInventoryScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 0
