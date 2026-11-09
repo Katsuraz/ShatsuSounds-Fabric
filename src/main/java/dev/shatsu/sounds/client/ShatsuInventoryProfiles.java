@@ -34,6 +34,11 @@ public final class ShatsuInventoryProfiles {
         }
         return result;
     }
+    public static String forId(String id) {
+        if (id == null || id.isBlank()) return "utility";
+        String key = id.contains(":") ? id.toLowerCase(java.util.Locale.ROOT) : "minecraft:" + id.toLowerCase(java.util.Locale.ROOT);
+        return VANILLA.getOrDefault(key, "utility");
+    }
     public static String of(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return "utility";
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
