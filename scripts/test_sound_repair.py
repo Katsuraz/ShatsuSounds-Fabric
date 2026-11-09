@@ -16,6 +16,7 @@ class ShatsuAudioRepairTests(unittest.TestCase):
         cls.shatsu4 = json.loads((ASSETS / 'shatsu4/sounds.json').read_text('utf-8'))
         cls.clangor = json.loads((ASSETS / 'clangor/sounds.json').read_text('utf-8'))
         cls.blockmap = (ASSETS / 'customblocksounds/config/blockmap.json').read_text('utf-8')
+        cls.catalog = json.loads((ROOT / 'build/generated/shatsu-assets/shatsu_catalog.json').read_text('utf-8'))
 
     def test_mining_hit_samples_exist(self):
         for event in ('block.stone.hit', 'block.deepslate.hit', 'block.tuff.hit',
