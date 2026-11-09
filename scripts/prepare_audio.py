@@ -225,6 +225,8 @@ def main():
     upgrade_fantasy_audio(root)
     from upgrade_asmr_core import update as upgrade_asmr_core
     upgrade_asmr_core(root)
+    from upgrade_v052_inventory import update as upgrade_v052_inventory
+    upgrade_v052_inventory(root)
     qualify_local_sound_references(root)
     count = generate_catalog(root)
     validate(root)
