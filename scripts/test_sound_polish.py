@@ -43,8 +43,8 @@ class SoundPolishTests(unittest.TestCase):
     def test_magical_events_and_shield(self):
         for key in ("entity.experience_orb.pickup", "item.totem.use"):
             sounds = self.minecraft[key]["sounds"]
-            self.assertEqual(len(sounds), 2 if key == "entity.experience_orb.pickup" else 3)
-            self.assertTrue(all(x["name"].startswith(("shatsupolish:magic/", "shatsufresh:magic/")) for x in sounds))
+            self.assertEqual(len(sounds), 4 if key == "entity.experience_orb.pickup" else 3)
+            self.assertTrue(all(x["name"].startswith(("shatsupolish:magic/", "shatsufresh:magic/", "shatsufresh:premium/magic/")) for x in sounds))
         self.assertIn("shield.raise", self.shield)
         self.assertEqual(len(self.shield["shield.raise"]["sounds"]), 2)
 
