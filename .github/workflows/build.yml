@@ -30,14 +30,17 @@ jobs:
       - name: Compile Fabric mod source
         run: gradle build --stacktrace
       - name: Label asset state
+        id: assets
         run: |
-          if test -e src/main/resources/assets/shatsuv7/sounds.json; then
-            echo "Shatsu asset payload detected. Inspect resource counts before release."
+          if test -f audio/ShatsuSounds_v7.3_assets_only.zip; then
+            echo "artifact=ShatsuSounds-ALPHA-AUDIO-INCLUDED-UNTESTED" >> "$GITHUB_OUTPUT"
+            echo "Bundled audio archive detected and included in build."
           else
-            echo "::warning::Shatsu v7.3 audio asset bundle is not yet committed. This JAR does not include the requested audio overhaul."
+            echo "artifact=ShatsuSounds-ALPHA-UI-ONLY-NO-AUDIO" >> "$GITHUB_OUTPUT"
+            echo "::warning::Shatsu v7.3 audio bundle is not yet committed; this JAR is source/UI only."
           fi
       - uses: actions/upload-artifact@v4
         with:
-          name: ShatsuSounds-ALPHA-UI-ONLY-until-assets-imported
+          name: ${{ steps.assets.outputs.artifact }}
           path: build/libs/*.jar
           if-no-files-found: error
