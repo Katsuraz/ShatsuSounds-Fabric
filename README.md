@@ -1,9 +1,27 @@
 # Shatsu Sounds — Fabric 26.3
 
-**v0.3.3 alpha · Fantasy XP, crisp ranged weapons, real spear sounds, unique food and FX Lab**
+**v0.4.0 alpha · ASMR wood and liquids, new enchanted-food accents, configurable sound comparisons, ANS integration**
 
 A client-side Minecraft Java 26.3 / Fabric mod with a bundled Shatsu soundscape. **Do not install old Shatsu resource packs above this mod** during testing; overlapping sound packs may defeat its overrides.
 
+
+
+## New in v0.4.0 alpha — tactile ASMR + compatibility
+
+- **Wood breaking:** four natural-feeling short crack variants, remapped across 146 already-overridden wood sound events (including oak planks). Designed to be distinct from hit/place sounds.
+- **Buckets:** distinct 4-variant sounds for water fill, water empty, lava fill, and lava empty. Lava is thicker/darker than water, and collection does not sound like pouring.
+- **Drinks:** four variations each for honey, milk, potions, and a water-drink preview. Item-aware milk, honey and potion consumption uses new \`shatsu_liquids:drink.*\` events and graceful fallback for unavailable sounds. Some Minecraft water bottles share the \`potion\` item ID and may currently use the potion profile.
+- **Special foods:** golden apple, enchanted golden apple, golden carrot and chorus fruit gain a quiet, cooldown-protected magic chime accent *underneath* the original eating sounds, not in place of them. Toggle from the Sound Studio.
+- **Gear:** short refreshed bow release, crossbow release and trident-throw profiles, each with four variations. Existing separate spear events from 0.3.3 remain in place.
+- **Studio:** an eight-tab interface with the three-page FX Lab, real old/new comparisons, a nonblocking coverage scanner in 512-event batches, Favorites, and ASMR Woodland/Fantasy Whisper presets. Arrow, food, drink and special-food magic controls persist in \`config/shatsu-sounds/profile.json\`.
+- **Actions & Beyond 1.13:** optional compatibility, with detection of its mod ID \`ans\`. Shatsu never modifies \`ans:\` sound files or their mixer gain. Animal-voice changes are offered as a **separate optional resource pack**, not inserted into ANS or the core Shatsu JAR.
+- **Approved sounds:** existing inventory opening, fireworks, and animal voices are deliberately preserved in the *core* mod. Liquid sounds are redesigned because the user explicitly requested that change.
+
+### Asset stages and limitations
+
+GitHub Actions builds a reproducible baseline from bundled Shatsu CC0 recordings. A **separately applied local mastering pass** can use recordings the user uploaded (35 wood-cracks, SpritePilot bow, water/lava audio, and seven magical samples). Those binary user uploads are not committed to this public repository. The user-facing compiled file may therefore contain more refined OGG assets than the generic GitHub Actions artifact, while using the **exact same event IDs and Java classes**.
+
+**Minecraft 26.3/Fabric/Java 25 only.** Remove the older Shatsu JAR and the broken \`shatsu_food_audio-0.1.0.jar\`. Do not stack an older Shatsu sound pack. CI compilation and audio-reference tests do **not** constitute an actual in-game test, especially for third-party mod interception and multiplayer consumption.
 
 ## v0.3.2 alpha — arrow whoosh, tool audio and visible food profiles
 
@@ -18,7 +36,7 @@ A client-side Minecraft Java 26.3 / Fabric mod with a bundled Shatsu soundscape.
 ## Install
 
 1. Install Java 25, a compatible Fabric Loader, Fabric API and Minecraft **26.3**.
-2. Download the latest **successful** v0.3.0 [GitHub Actions artifact](https://github.com/Katsuraz/ShatsuSounds-Fabric/actions). Extract its JAR into `.minecraft/mods`.
+2. Download the latest **successful** v0.4.0 [GitHub Actions artifact](https://github.com/Katsuraz/ShatsuSounds-Fabric/actions). Extract its JAR into `.minecraft/mods`.
 3. Install [Mod Menu](https://modrinth.com/mod/modmenu) to open Shatsu's sound studio (optional but recommended).
 4. [Clangor](https://modrinth.com/mod/clangor), [Sounds](https://modrinth.com/mod/sound) and [Custom Block Sounds](https://modrinth.com/mod/custom-block-sounds) are **optional**. Each unlocks its own integration. Check their own dependency requirements if installing.
 5. [Sound Physics Remastered](https://modrinth.com/mod/sound-physics-remastered) is optional and uses its own configuration.
