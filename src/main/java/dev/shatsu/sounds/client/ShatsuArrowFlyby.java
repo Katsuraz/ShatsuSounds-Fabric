@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import dev.shatsu.sounds.ShatsuConfig;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
@@ -40,6 +41,7 @@ public final class ShatsuArrowFlyby {
                 lastSoundTick = -100;
             }
             tick++;
+            if (!ShatsuConfig.current().arrowWhooshEnabled) return;
             if (tick % 2 != 0 || client.gui.screen() != null) return;
             var soundSet = client.getSoundManager().getSoundEvent(ID);
             if (soundSet == null || soundSet.getWeight() <= 0) return;
