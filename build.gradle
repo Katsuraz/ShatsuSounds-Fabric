@@ -24,6 +24,8 @@ def uploadedShatsuPack = file('Shatsu_Satisfying_Sounds_v7.3_SOFT_GENERIC_HITS_E
 tasks.register('prepareShatsuAssets', Exec) {
     inputs.file(uploadedShatsuPack)
     inputs.file(file('scripts/prepare_audio.py'))
+    inputs.file(file('scripts/polish_audio.py'))
+    inputs.file(file('scripts/placement_polish.py'))
     outputs.dir(layout.buildDirectory.dir('generated/shatsu-assets'))
     commandLine 'python3', 'scripts/prepare_audio.py', uploadedShatsuPack.absolutePath,
         layout.buildDirectory.dir('generated/shatsu-assets').get().asFile.absolutePath
