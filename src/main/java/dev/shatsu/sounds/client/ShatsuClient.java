@@ -12,7 +12,9 @@ public final class ShatsuClient implements ClientModInitializer {
         ShatsuShieldReady.register();
         ShatsuArrowFlyby.register();
         System.out.println("[Shatsu Sounds] Audio catalog events: " + ShatsuCatalog.size());
-        for (String id : new String[] {"modmenu","clangor","sound","customblocksounds","sound_physics_remastered"}) {
+        if (FabricLoader.getInstance().isModLoaded("ans"))
+            System.out.println("[Shatsu Sounds] Actions & Beyond detected: ans: events remain owned by ANS. Nature sound overrides are kept separate.");
+        for (String id : new String[] {"modmenu","clangor","sound","customblocksounds","sound_physics_remastered","ans"}) {
             System.out.println("[Shatsu Sounds] " + id + ": " +
                     (FabricLoader.getInstance().isModLoaded(id) ? "detected" : "not installed"));
         }
