@@ -1,6 +1,7 @@
 package dev.shatsu.sounds.client;
 
 import net.minecraft.client.Minecraft;
+import dev.shatsu.sounds.ShatsuConfig;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
@@ -11,6 +12,14 @@ import net.minecraft.world.item.ItemStack;
  */
 public final class ShatsuFoodAudio {
     private ShatsuFoodAudio() {}
+    private static int localMatches = 0;
+    private static int remoteMatches = 0;
+    private static int missingEvents = 0;
+    private static String lastProfile = "None yet";
+    public static int localMatches() { return localMatches; }
+    public static int remoteMatches() { return remoteMatches; }
+    public static int missingEvents() { return missingEvents; }
+    public static String lastProfile() { return lastProfile; }
 
     public static boolean hasProfile(ItemStack stack) {
         return stack != null && !stack.isEmpty()
@@ -18,6 +27,10 @@ public final class ShatsuFoodAudio {
     }
 
     public static SoundEvent select(ItemStack stack, SoundEvent original) {
+        return select(stack, original, "local");
+    }
+    public static SoundEvent select(ItemStack stack, SoundEvent original, String source) {
+        if (!ShatsuConfig.current().foodAudioEnabled) return original;
         if (stack == null || stack.isEmpty()) return original;
         String item = BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
         String profile = profile(item);
@@ -25,7 +38,15 @@ public final class ShatsuFoodAudio {
         Identifier event = Identifier.fromNamespaceAndPath("shatsu_food_audio", "food." + profile);
         // Keep vanilla sound instead of playing a missing or empty event.
         var soundSet = Minecraft.getInstance().getSoundManager().getSoundEvent(event);
-        if (soundSet == null || soundSet.getWeight() <= 0) return original;
+        if (soundSet == null || soundSet.getWeight() <= 0) {
+            missingEvents++;
+            if (missingEvents < 4) System.err.println("[Shatsu Sounds] Unavailable food event " + event);
+            return original;
+        }
+        if ("remote".equals(source)) remoteMatches++; else localMatches++;
+        lastProfile = item + " > " + profile + " (" + source + ")";
+        if (localMatches + remoteMatches <= 3)
+            System.out.println("[Shatsu Sounds] Food audio swapped " + lastProfile);
         return SoundEvent.createVariableRangeEvent(event);
     }
 
