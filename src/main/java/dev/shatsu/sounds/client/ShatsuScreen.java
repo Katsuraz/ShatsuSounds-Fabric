@@ -25,6 +25,7 @@ public final class ShatsuScreen extends Screen {
     private String status = "";
     private int tab = 0, filter = 0, page = 0, mixerPage = 0;
     private SoundInstance activePreview;
+    private long lastPreviewNanos;
     private static final String[] TABS = {"Home", "Library", "Mixer", "Presets", "Tools"};
     private static final String[] FILTERS = {"all", "block_hit", "block_break", "block_place",
         "footsteps", "block_other", "combat", "inventory", "movement", "environment",
@@ -37,8 +38,7 @@ public final class ShatsuScreen extends Screen {
     private int panelWidth() { return Math.min(500, Math.max(280, width - 20)); }
     private int panelX() { return Math.max(7, (width - panelWidth()) / 2); }
     private Button action(int x, int y, int w, int h, String text, Runnable callback) {
-        Button button = Button.builder(Component.literal(text), b -> callback.run())
-            .pos(x, y).size(Math.max(20, w), h).build();
+        Button button = new ShatsuButton(x, y, Math.max(20, w), h, text, callback);
         return addRenderableWidget(button);
     }
     private void refresh() { clearWidgets(); init(); }
@@ -60,7 +60,7 @@ public final class ShatsuScreen extends Screen {
             case 4 -> diagnostics(x, 65, w);
             default -> dashboard(x, 65, w);
         }
-        action(x, height - 27, Math.max(90, w / 2 - 3), 20, "Stop sound", this::stopPreview);
+        action(x, height - 27, Math.max(90, w / 2 - 3), 20, "Stop Preview", this::stopPreview);
         action(x + w / 2 + 3, height - 27, w / 2 - 3, 20,
             "Save & Close", this::onClose);
     }
@@ -232,6 +232,7 @@ public final class ShatsuScreen extends Screen {
         g.fill(px - 10, 6, px + w + 10, height - 6, 0xEE23302D);
         g.outline(px - 10, 6, w + 20, height - 12, 0xFF687567);
         g.fill(px - 10, 6, px + w + 10, 9, 0xFFD2B57C);
+        g.fill(px - 10, 10, px + w + 10, 11, 0xFF4C5D51);
         g.fill(px, 62, px + w, 63, 0xFF475C52);
         g.fill(px, height - 32, px + w, height - 31, 0xFF475C52);
         if (tab == 0) {
@@ -260,22 +261,33 @@ public final class ShatsuScreen extends Screen {
         status = "Preview stopped";
     }
     private void preview(String id) {
+        // Ignore repeated presses. An audio backend can still be finishing the
+        // previous play request when Minecraft invokes a second click callback.
+        long now = System.nanoTime();
+        if (now - lastPreviewNanos < 120_000_000L) return;
+        lastPreviewNanos = now;
         try {
             var manager = Minecraft.getInstance().getSoundManager();
             var key = Identifier.parse(id);
-            if (manager.getSoundEvent(key) == null) {
-                status = "Not registered: " + id;
-                System.err.println("[Shatsu Sounds] Missing preview event " + id);
+            var soundSet = manager.getSoundEvent(key);
+            // getSoundEvent() can return an EMPTY event even when the entry
+            // exists in sounds.json: missing OGGs are discarded during reload.
+            if (soundSet == null || soundSet.getWeight() <= 0) {
+                status = "No playable audio: " + id;
+                System.err.println("[Shatsu Sounds] Skipped unavailable preview " + id
+                        + " (no loaded samples). Check namespaced OGG paths.");
                 return;
             }
             if (activePreview != null) manager.stop(activePreview);
             activePreview = SimpleSoundInstance.forUI(
-                SoundEvent.createVariableRangeEvent(key), ShatsuConfig.current().pitch(id), .6f);
+                    SoundEvent.createVariableRangeEvent(key), ShatsuConfig.current().pitch(id), .6f);
             manager.play(activePreview);
             status = "Playing " + id;
-        } catch (Exception ex) {
+        } catch (RuntimeException ex) {
+            activePreview = null;
             status = "Preview failed: see latest.log";
             System.err.println("[Shatsu Sounds] Preview " + id + ": " + ex);
+            ex.printStackTrace(System.err);
         }
     }
     @Override public void onClose() {
