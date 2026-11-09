@@ -28,7 +28,7 @@ public final class ShatsuGenericAttackFeedback {
 
     public static void register() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            boolean pressed = client.options.keyAttack.isDown() && client.screen == null;
+            boolean pressed = client.options.keyAttack.isDown() && client.gui.screen() == null;
             boolean start = pressed && !previouslyPressed;
             previouslyPressed = pressed;
             if (!start || client.player == null || client.player.isSpectator()
