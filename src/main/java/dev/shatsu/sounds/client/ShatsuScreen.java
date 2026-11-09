@@ -248,8 +248,10 @@ public final class ShatsuScreen extends Screen {
             action(x+col+6,y0+26,col,22,"Dragon wings",()->preview("minecraft:entity.ender_dragon.flap"));
             action(x,y0+52,col,22,"Gentle cow",()->preview("minecraft:entity.cow.ambient"));
             action(x+col+6,y0+52,col,22,"Cat purr",()->preview("minecraft:entity.cat.purr"));
-            action(x,y0+80,w,22,"Nature & folklore audio: "+(cfg.natureAudioEnabled?"ON":"OFF"),()->{
-                cfg.natureAudioEnabled=!cfg.natureAudioEnabled;ShatsuConfig.save();refresh();
+            action(x,y0+80,w,22,"Creature presence: "+Math.round(cfg.mobAudioIntensity*100)+"%",()->{
+                cfg.mobAudioIntensity = cfg.mobAudioIntensity < .75f ? .85f :
+                    (cfg.mobAudioIntensity < 1.05f ? 1.20f : .60f);
+                ShatsuConfig.save();refresh();
             });
             action(x,y0+108,w,22,"Only real animals and folklore mobs / ANS voices protected",()->tab(7));
         } else if (labPage==4) {
@@ -289,7 +291,10 @@ public final class ShatsuScreen extends Screen {
             {"Trident throw","shatsufresh:preview.premium.trident.throw","shatsufresh:preview.asmr.trident.throw"},
             {"Honey drink","shatsufresh:preview.food.honey","shatsu_liquids:drink.honey"},
             {"Water bucket","shatsuv7:block.water.place","minecraft:item.bucket.empty"},
-            {"Lava bucket","minecraft:item.bucket.fill_lava","minecraft:item.bucket.empty_lava"}
+            {"Lava bucket","minecraft:item.bucket.fill_lava","minecraft:item.bucket.empty_lava"},
+            {"Sculk breaking","shatsuv7:block.sculk.break","minecraft:block.sculk.break"},
+            {"Inventory metal move","shatsuv7:inventory.metal","shatsufresh:inventory.move.pickup.metal"},
+            {"Inventory wood move","shatsuv7:inventory.wooden","shatsufresh:inventory.move.place.wooden"}
         };
         comparePage=Math.max(0,Math.min(comparePage,sounds.length-1));
         String[] cur=sounds[comparePage];
