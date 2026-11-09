@@ -262,8 +262,10 @@ public final class ShatsuScreen extends Screen {
             action(x,y0+54,w,22,"Inventory movement: "+(cfg.inventoryAudioEnabled?"ON":"OFF"),()->{
                 cfg.inventoryAudioEnabled=!cfg.inventoryAudioEnabled;ShatsuConfig.save();refresh();
             });
-            action(x,y0+82,w,22,"Actual inventory actions heard: "+ShatsuInventoryAudio.interactions(),()->{
-                status="Slot click hook plays action- and material-specific sounds.";
+            action(x,y0+82,w,22,"Slot clicks: "+ShatsuInventoryAudio.hookHits()+
+                    " / Sounds played: "+ShatsuInventoryAudio.interactions()+
+                    " / Missing: "+ShatsuInventoryAudio.missingEvents(),()->{
+                status=ShatsuInventoryAudio.lastEvent(); refresh();
             });
             action(x,y0+109,w,22,"Inventory opening sound remains unchanged",()->{status="Approved inventory-opening sound protected";});
         }
