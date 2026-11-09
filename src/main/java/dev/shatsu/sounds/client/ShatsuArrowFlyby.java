@@ -9,8 +9,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
  * Local positional arrow-flight whoosh, not an additional launch or impact.
@@ -48,10 +47,11 @@ public final class ShatsuArrowFlyby {
             var seen = new HashSet<UUID>();
             for (var entity : client.level.getEntities(client.player,
                     client.player.getBoundingBox().inflate(14.0),
-                    e -> e instanceof AbstractArrow)) {
-                if (!(entity instanceof AbstractArrow arrow)) continue;
-                if (arrow.getType() != EntityType.ARROW
-                        && arrow.getType() != EntityType.SPECTRAL_ARROW) continue;
+                    e -> {
+                        String type = BuiltInRegistries.ENTITY_TYPE.getKey(e.getType()).getPath();
+                        return type.equals("arrow") || type.equals("spectral_arrow");
+                    })) {
+                var arrow = entity;
                 var uuid = arrow.getUUID();
                 seen.add(uuid);
                 double distance = client.player.distanceToSqr(arrow);
