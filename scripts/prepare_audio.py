@@ -104,6 +104,37 @@ def validate(root):
                         raise RuntimeError(f'Missing {namespace}:{event} -> {file}')
 
 
+
+def generate_catalog(root):
+    """Build the actual Mod Menu/mixer catalog from the sound events in the JAR."""
+    rows = []
+    for file in sorted((root / 'assets').glob('*/sounds.json')):
+        namespace = file.parent.name
+        definitions = json.loads(file.read_text('utf-8'))
+        for event, value in definitions.items():
+            if event.startswith('block.'):
+                if event.endswith('.hit'): category = 'block_hit'
+                elif event.endswith('.break'): category = 'block_break'
+                elif event.endswith('.place'): category = 'block_place'
+                elif event.endswith(('.step', '.fall')): category = 'footsteps'
+                else: category = 'block_other'
+            elif any(v in event for v in ('inventory', 'typing', 'item_click', 'item_drag')):
+                category = 'inventory'
+            elif any(v in event for v in ('attack', 'hit', 'weapon', 'mace', 'spear', 'trident', 'bow')):
+                category = 'combat'
+            elif any(v in event for v in ('eat', 'drink', 'honey')):
+                category = 'food'
+            elif any(v in event for v in ('weather', 'rain', 'thunder', 'explode')):
+                category = 'environment'
+            else:
+                category = 'other'
+            rows.append({'id': f'{namespace}:{event}', 'category': category,
+                         'variations': len(value.get('sounds', [])), 'namespace': namespace})
+    if len(rows) < 6500:
+        raise RuntimeError(f'Incomplete Shatsu event catalog: {len(rows)} entries')
+    (root / 'shatsu_catalog.json').write_text(json.dumps(rows, ensure_ascii=False), encoding='utf-8')
+    return len(rows)
+
 def main():
     if len(sys.argv) != 3:
         sys.exit('Usage: prepare_audio.py ORIGINAL_PACK.zip STAGING_DIRECTORY')
@@ -139,9 +170,10 @@ def main():
         raise RuntimeError(f'Suspicious audio count: {processed=} {raised=}')
     changed = patch_custom_block_sounds(root)
     patch_generic_hits(root)
+    count = generate_catalog(root)
     validate(root)
     print(f'Shatsu repair: {raised}/{processed} quiet hit OGGs normalized; '
-          f'{changed}/1047 block hit volumes improved; 10 generic/rods hit events repaired.')
+          f'{changed}/1047 block hit volumes improved; 10 generic/rods hit events repaired; {count} catalog entries.')
 
 
 if __name__ == '__main__':
