@@ -18,7 +18,7 @@ public final class ShatsuRemoteFoodAudio {
     private ShatsuRemoteFoodAudio() {}
 
     private static boolean isPlayerEating(SoundEvent event, SoundSource source) {
-        return source == SoundSource.PLAYERS && SoundEvents.GENERIC_EAT.value().equals(event);
+        return source == SoundSource.PLAYERS && (SoundEvents.GENERIC_EAT.value().equals(event) || SoundEvents.GENERIC_DRINK.value().equals(event));
     }
 
     private static ItemStack likelyFood(Player player) {
