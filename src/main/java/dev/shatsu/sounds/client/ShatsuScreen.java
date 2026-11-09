@@ -69,9 +69,14 @@ public final class ShatsuScreen extends Screen {
         action(x, y, w, 23, "Browse " + ShatsuCatalog.size() + " available sound events", () -> tab(1));
         action(x, y + 29, w, 23, "Active preset: " + cfg.preset, () -> tab(3));
         action(x, y + 58, w, 23, "Sound mixer  /  " + Math.round(cfg.master * 100) + "% master", () -> tab(2));
-        action(x, y + 87, w, 23, "Test audio & check installed dependencies", () -> tab(4));
+        action(x, y + 87, w, 23, "Food sounds  /  apples, bread, meat, soup", () -> {
+            filter = 11; query = ""; tab(1);
+        });
         if (height > y + 151) {
-            action(x, y + 116, w, 22, "Restore default mixer levels", () -> {
+            action(x, y + 116, w, 22, "Audio diagnostics and dependencies", () -> tab(4));
+        }
+        if (height > y + 180) {
+            action(x, y + 145, w, 22, "Restore default mixer levels", () -> {
                 cfg.resetMixer(); status = "Mixer reset"; refresh();
             });
         }
@@ -280,7 +285,7 @@ public final class ShatsuScreen extends Screen {
             }
             if (activePreview != null) manager.stop(activePreview);
             activePreview = SimpleSoundInstance.forUI(
-                    SoundEvent.createVariableRangeEvent(key), ShatsuConfig.current().pitch(id), .6f);
+                    SoundEvent.createVariableRangeEvent(key), ShatsuConfig.current().pitch(id), 1.0f);
             manager.play(activePreview);
             status = "Playing " + id;
         } catch (RuntimeException ex) {
