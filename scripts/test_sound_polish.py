@@ -77,6 +77,24 @@ class SoundPolishTests(unittest.TestCase):
                 self.assertTrue(event.get("replace", False), name)
                 self.assertLessEqual(len(event.get("sounds", [])), 2, name)
 
+
+    def test_every_place_sound_is_fresh_and_material_mapped(self):
+        families = set()
+        for namespace, catalog in (("minecraft", self.minecraft), ("shatsu4", self.custom)):
+            for event, definition in catalog.items():
+                if not event.startswith("block.") or not event.endswith(".place"):
+                    continue
+                self.assertEqual(len(definition["sounds"]), 2, f"{namespace}:{event}")
+                for sample in definition["sounds"]:
+                    name = sample["name"]
+                    self.assertTrue(name.startswith("shatsupolish:block/place/"),
+                                    f"Legacy placement: {namespace}:{event} -> {name}")
+                    family = name.split("/")[2]
+                    families.add(family)
+                    path = ASSETS / "shatsupolish/sounds" / (name.split(":")[1] + ".ogg")
+                    self.assertTrue(path.is_file(), f"{event}: {path}")
+        self.assertEqual(len(families), 33)
+
     def test_required_dependencies(self):
         data = json.loads((BASE / "src/main/resources/fabric.mod.json").read_text("utf8"))
         for mod in ("clangor", "sound", "customblocksounds", "fabric-api"):
