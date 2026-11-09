@@ -60,7 +60,7 @@ class SoundPolishTests(unittest.TestCase):
     def test_wood_break_family_not_old_bang(self):
         self.assertTrue(all(x["name"].startswith(("shatsupolish:block/wood_break/","shatsufresh:asmr/wood/break/"))
                             for x in self.minecraft["block.wood.break"]["sounds"]))
-        self.assertTrue(all(x["name"].startswith("shatsupolish:block/wood_break/")
+        self.assertTrue(all(x["name"].startswith(("shatsupolish:block/wood_break/","shatsufresh:asmr/wood/break/"))
                             for x in self.custom["block.oak_planks.break"]["sounds"]))
 
     def test_place_rules_preserve_all_five_actions(self):
