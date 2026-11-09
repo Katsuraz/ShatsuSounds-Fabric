@@ -9,11 +9,13 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 
 public final class ShatsuConfig {
     public static final String[] CATEGORIES = {
         "block_hit", "block_break", "block_place", "footsteps", "block_other",
-        "combat", "inventory", "movement", "environment", "interaction", "food", "magic", "other"
+        "combat", "inventory", "movement", "environment", "interaction", "food", "liquids", "animals", "magic", "other"
     };
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path PATH = FabricLoader.getInstance().getConfigDir().resolve("shatsu-sounds/profile.json");
@@ -24,6 +26,13 @@ public final class ShatsuConfig {
     public Map<String, Float> eventVolumes = new HashMap<>();
     public Map<String, Float> eventPitches = new HashMap<>();
     public Map<String, Boolean> enabled = new HashMap<>();
+    public Set<String> favorites = new HashSet<>();
+    public boolean foodAudioEnabled = true;
+    public boolean drinkAudioEnabled = true;
+    public boolean specialMagicEnabled = true;
+    public boolean actionsBeyondCompatibility = true;
+    public boolean animalsPackEnabled = false;
+    public boolean arrowWhooshEnabled = true;
     private ShatsuConfig() {}
     public static ShatsuConfig current() { return ACTIVE; }
     public static synchronized void load() {
@@ -35,6 +44,7 @@ public final class ShatsuConfig {
                     if (result.eventVolumes == null) result.eventVolumes = new HashMap<>();
                     if (result.eventPitches == null) result.eventPitches = new HashMap<>();
                     if (result.enabled == null) result.enabled = new HashMap<>();
+                    if (result.favorites == null) result.favorites = new HashSet<>();
                     ACTIVE = result;
                 }
             } else save();
@@ -59,18 +69,22 @@ public final class ShatsuConfig {
             if (id.endsWith(".place")) return "block_place";
             return "block_other";
         }
-        if (id.contains("experience_orb") || id.contains("totem")) return "magic";
+        if (id.contains("experience_orb") || id.contains("levelup") || id.contains("totem") || id.contains("preview.asmr.magic")) return "magic";
+        if (id.startsWith("drink.") || id.contains("bucket.")) return "liquids";
+        if (id.startsWith("animal.") || id.startsWith("preview.nature.")) return "animals";
         if (id.contains("shield")) return "combat";
         if (id.contains("inventory") || id.contains("typing") || id.contains("item_click") || id.contains("item_drag")) return "inventory";
         if (id.contains("step") || id.contains("landing") || id.contains("swim")) return "movement";
         if (id.contains("attack") || id.contains("hit") || id.contains("mace") || id.contains("weapon") || id.contains("trident") || id.contains("bow") || id.contains("spear")) return "combat";
-        if (id.contains("eat") || id.contains("drink") || id.contains("honey")) return "food";
+        if (id.startsWith("food.") || id.contains("eat") || id.contains("drink") || id.contains("honey")) return "food";
         if (id.contains("rain") || id.contains("thunder") || id.contains("explode") || id.contains("wind_burst")) return "environment";
         if (id.contains("open") || id.contains("close") || id.contains("click") || id.contains("door")) return "interaction";
         return "other";
     }
     public float multiplier(String id) {
         // Do not modify arbitrary other mods or vanilla mob-voice sounds.
+        // Never chain our gain changes onto Actions & Beyond sounds.
+        if (actionsBeyondCompatibility && FabricLoader.getInstance().isModLoaded("ans") && id.startsWith("ans:")) return 1f;
         if (!ShatsuCatalog.contains(id)) return 1f;
         if (Boolean.FALSE.equals(enabled.get(id))) return 0f;
         return clamp(master) * clamp(categoryVolumes.getOrDefault(category(id),1f)) *
@@ -82,6 +96,12 @@ public final class ShatsuConfig {
     public void setEnabled(String id,boolean value) { enabled.put(id,value);save(); }
     public void setPitch(String id,float value) { eventPitches.put(id,Math.max(.5f,Math.min(2f,value)));save(); }
     public void resetEvent(String id) { enabled.remove(id);eventVolumes.remove(id);eventPitches.remove(id);save(); }
+    public boolean isFavorite(String id) { return favorites != null && favorites.contains(id); }
+    public void toggleFavorite(String id) {
+        if (favorites == null) favorites = new HashSet<>();
+        if (!favorites.add(id)) favorites.remove(id);
+        save();
+    }
     public void resetMixer() { master=1f;categoryVolumes.clear();eventVolumes.clear();eventPitches.clear();save(); }
     public void applyPreset(String name) {
         preset = name;
@@ -93,6 +113,8 @@ public final class ShatsuConfig {
             case "Immersive" -> { categoryVolumes.put("environment",1.1f);categoryVolumes.put("movement",1.1f); }
             case "Combat Focus" -> { categoryVolumes.put("combat",1.15f);categoryVolumes.put("inventory",.7f); }
             case "Minimal" -> { master=.75f;categoryVolumes.put("inventory",.55f); }
+            case "ASMR Woodland" -> { master=.92f; categoryVolumes.put("block_break",1.08f); categoryVolumes.put("animals",.78f);categoryVolumes.put("liquids",.96f);categoryVolumes.put("magic",.78f); }
+            case "Fantasy Whisper" -> { master=.86f; categoryVolumes.put("magic",.94f);categoryVolumes.put("combat",.78f);categoryVolumes.put("liquids",.91f); }
             default -> { }
         }
         save();

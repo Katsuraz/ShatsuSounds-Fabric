@@ -35,6 +35,7 @@ tasks.register('prepareShatsuAssets', Exec) {
     inputs.file(layout.buildDirectory.file('generated/shatsu-v03-audio.zip'))
     inputs.file(uploadedShatsuPack)
     inputs.file(file('scripts/prepare_audio.py'))
+    inputs.file(file('scripts/upgrade_asmr_core.py'))
     inputs.file(file('scripts/polish_audio.py'))
     inputs.file(file('scripts/placement_polish.py'))
     outputs.dir(layout.buildDirectory.dir('generated/shatsu-assets'))
