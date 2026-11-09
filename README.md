@@ -1,18 +1,18 @@
 # Shatsu Sounds — Minecraft Fabric 26.3
 
-**v0.2.2 alpha: Minimal Sound Studio + rebuilt material and magical audio**
+**v0.2.3 alpha: Optional third-party sound integrations**
 
 This client-side mod bundles the approved Shatsu v7.3 sound library into one compiled Fabric JAR. The original resource-pack ZIP is stored in the repository and never changed; the Java 25/Gradle build creates an audio-enhanced copy inside the JAR.
 
 ## Requirements
 
-Minecraft Java **26.3**, **Java 25**, **Fabric Loader** and **Fabric API**. The following **three mods are now required** (as requested):
+Minecraft Java **26.3**, **Java 25**, **Fabric Loader** and **Fabric API**. The following three mods are **optional**; they enable additional functionality when installed:
 
 - [Clangor](https://modrinth.com/mod/clangor) — weapon, selection, swing and impact sounds
 - [Sounds](https://modrinth.com/mod/sound) — item/inventory/UI sound support
 - [Custom Block Sounds](https://modrinth.com/mod/custom-block-sounds) — block-specific hit, break, place, step and fall
 
-Install their own dependencies too, including **YetAnotherConfigLib (YACL)** and **MRU** as reported by Fabric. **Mod Menu** is optional, but installing it is recommended to open Shatsu's configuration GUI. **Sound Physics Remastered** remains optional.
+If you choose to install those optional mods, also install whatever dependencies Fabric reports for them. **Mod Menu** is optional, but installing it is recommended to open Shatsu's configuration GUI. **Sound Physics Remastered** remains optional.
 
 These are client mods; Shatsu does not require installation on dedicated servers.
 
@@ -24,7 +24,7 @@ These are client mods; Shatsu does not require installation on dedicated servers
 - **Bow and trident:** Sharper release, draw, throw and impact samples without the previous playful tone. Specialized mace effects and your approved weapon audio remain.
 - **Shield raise:** A new client-side trigger plays a restrained shield-ready sound when blocking begins, independently from the vanilla shield-block impact. Short cooldown prevents spam.
 - **Minimal Sound Studio:** Compact five-tab interface with searchable sound library, 13 category filters, per-sound volume, pitch, enable/disable and reset controls, paged audio mixer, audio presets and diagnostic test buttons.
-- **Dependencies:** Clangor, Sounds and Custom Block Sounds now declared required in `fabric.mod.json`. Mod Menu and Sound Physics remain optional.
+- **Dependencies:** Clangor, Sounds and Custom Block Sounds now declared optional in `fabric.mod.json`. Mod Menu and Sound Physics remain optional.
 - **Preservation:** Vanilla mob voices, approved inventory-opening chime, drinking, fireworks, Ender Pearl teleport, custom mace effects, and other approved sounds are not intentionally modified.
 
 ## Install and test
