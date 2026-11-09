@@ -74,7 +74,13 @@ public final class ShatsuConfig {
         }
         if (id.contains("experience_orb") || id.contains("levelup") || id.contains("totem") || id.contains("preview.asmr.magic")) return "magic";
         if (id.startsWith("drink.") || id.contains("bucket.")) return "liquids";
-        if (id.startsWith("animal.") || id.startsWith("preview.nature.")) return "animals";
+        if (id.startsWith("animal.") || id.startsWith("preview.nature.")
+            || id.startsWith("entity.zombie.") || id.startsWith("entity.husk.")
+            || id.startsWith("entity.drowned.") || id.startsWith("entity.skeleton.")
+            || id.startsWith("entity.stray.") || id.startsWith("entity.wither_skeleton.")
+            || id.startsWith("entity.witch.") || id.startsWith("entity.slime.")
+            || id.startsWith("entity.ender_dragon.") || id.startsWith("entity.cat.")
+            || id.startsWith("entity.sheep.") || id.startsWith("entity.wolf.")) return "animals";
         if (id.contains("shield")) return "combat";
         if (id.contains("inventory") || id.contains("typing") || id.contains("item_click") || id.contains("item_drag")) return "inventory";
         if (id.contains("step") || id.contains("landing") || id.contains("swim")) return "movement";
@@ -90,8 +96,9 @@ public final class ShatsuConfig {
         if (actionsBeyondCompatibility && FabricLoader.getInstance().isModLoaded("ans") && id.startsWith("ans:")) return 1f;
         if (!ShatsuCatalog.contains(id)) return 1f;
         if (Boolean.FALSE.equals(enabled.get(id))) return 0f;
+        float animalIntensity = "animals".equals(category(id)) ? clamp(mobAudioIntensity) : 1f;
         return clamp(master) * clamp(categoryVolumes.getOrDefault(category(id),1f)) *
-                clamp(eventVolumes.getOrDefault(id,1f));
+                clamp(eventVolumes.getOrDefault(id,1f)) * animalIntensity;
     }
     public float pitch(String id) { return Math.max(.5f, Math.min(2f,eventPitches.getOrDefault(id,1f))); }
     public void setCategory(String category,float volume) { categoryVolumes.put(category,clamp(volume));save(); }
