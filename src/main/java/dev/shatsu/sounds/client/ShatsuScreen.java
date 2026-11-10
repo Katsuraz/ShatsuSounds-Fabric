@@ -47,7 +47,8 @@ public final class ShatsuScreen extends Screen {
     // Grouping is presentation-only, so existing profile.json values remain compatible.
     private static final String[] VOLUME_GROUPS = {
         "Inventory", "Combat", "Blocks", "Movement", "Food & Drinks",
-        "Magic", "Nature & World", "Interactions & UI", "Other"
+        "Magic", "Nature & World", "Interactions & UI", "Mobs",
+        "Water & Lava", "Other"
     };
     private static final String[][] VOLUME_GROUP_KEYS = {
         {"inventory"},
@@ -58,11 +59,14 @@ public final class ShatsuScreen extends Screen {
         {"magic"},
         {"environment"},
         {"interaction"},
+        {"animals"},
+        {"liquids"},
         {"other"}
     };
     private static final String[] LIBRARY_FILTERS = {
         "All sounds", "Inventory", "Combat", "Blocks", "Movement", "Food & Drinks",
-        "Magic", "Nature & World", "Interactions & UI", "Other"
+        "Magic", "Nature & World", "Interactions & UI", "Mobs",
+        "Water & Lava", "Other"
     };
 
     public ShatsuScreen(Screen previous) {
