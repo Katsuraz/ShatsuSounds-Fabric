@@ -88,6 +88,7 @@ public final class ShatsuConfig {
         master = 1f;
         categoryVolumes.clear();
         switch(name) {
+            case "Retro" -> { master=1.05f; categoryVolumes.put("combat",1.15f); categoryVolumes.put("inventory",1.1f); categoryVolumes.put("interaction",1.1f); categoryVolumes.put("magic",1.05f); }
             case "Soft ASMR" -> { master=.7f; categoryVolumes.put("combat",.65f);categoryVolumes.put("inventory",.7f);categoryVolumes.put("magic",.65f); }
             case "Crisp & Tactile" -> { categoryVolumes.put("inventory",1.1f);categoryVolumes.put("block_hit",1.05f); }
             case "Immersive" -> { categoryVolumes.put("environment",1.1f);categoryVolumes.put("movement",1.1f); }
