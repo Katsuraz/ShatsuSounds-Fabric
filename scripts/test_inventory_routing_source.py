@@ -30,7 +30,7 @@ class InventoryRoutingTests(unittest.TestCase):
         self.assertIn("signature.equals(lastSignature)", ROUTER)
         self.assertIn("18_000_000L", ROUTER)
         self.assertIn("System.identityHashCode(slot)", ROUTER)
-        self.assertNotIn("now - lastSoundNanos < 18_000_000L", ROUTER)
+        self.assertNotIn("if (now - lastSoundNanos <", ROUTER)
 
     def test_listenable_diagnostics_and_nonempty_events(self):
         self.assertIn("public static int hookHits()", ROUTER)
