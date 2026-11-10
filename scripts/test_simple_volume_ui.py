@@ -42,7 +42,7 @@ class SimpleVolumePageTests(unittest.TestCase):
         self.assertIn("cfg.categoryVolumes.put(key, newValue)", SCREEN)
         self.assertIn("cfg.categoryVolumes.remove(key)", SCREEN)
         self.assertIn('cfg.preset = "Custom";', SCREEN)
-        self.assertIn("if (tab == 2 && selected != tab) ShatsuConfig.save();", SCREEN)
+        self.assertIn("if ((tab == 2 || tab == 3) && selected != tab) ShatsuConfig.save();", SCREEN)
         self.assertIn('action(x, footer, 86, 19, "Previous"', SCREEN)
         self.assertNotIn('"Category page "', SCREEN)
 
