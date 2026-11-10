@@ -6,7 +6,9 @@
   "client": [
     "SoundEngineMixin",
     "ShatsuInventoryScreenMixin",
-    "ShatsuCreativeInventoryScreenMixin"
+    "ShatsuCreativeInventoryScreenMixin",
+    "ShatsuSnowballImpactMixin",
+    "ShatsuEggImpactMixin"
   ],
   "injectors": {
     "defaultRequire": 0
