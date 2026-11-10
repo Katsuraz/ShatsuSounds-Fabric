@@ -24,6 +24,7 @@ public final class ShatsuConfig {
     public Map<String, Float> eventVolumes = new HashMap<>();
     public Map<String, Float> eventPitches = new HashMap<>();
     public Map<String, Boolean> enabled = new HashMap<>();
+    public Map<String, Boolean> favoriteSounds = new HashMap<>();
     private ShatsuConfig() {}
     public static ShatsuConfig current() { return ACTIVE; }
     public static synchronized void load() {
@@ -35,6 +36,7 @@ public final class ShatsuConfig {
                     if (result.eventVolumes == null) result.eventVolumes = new HashMap<>();
                     if (result.eventPitches == null) result.eventPitches = new HashMap<>();
                     if (result.enabled == null) result.enabled = new HashMap<>();
+                    if (result.favoriteSounds == null) result.favoriteSounds = new HashMap<>();
                     ACTIVE = result;
                 }
             } else save();
@@ -80,6 +82,11 @@ public final class ShatsuConfig {
     public void setCategory(String category,float volume) { categoryVolumes.put(category,clamp(volume));save(); }
     public void setVolume(String id,float volume) { eventVolumes.put(id,clamp(volume));save(); }
     public void setEnabled(String id,boolean value) { enabled.put(id,value);save(); }
+    public boolean isFavorite(String id) { return Boolean.TRUE.equals(favoriteSounds.get(id)); }
+    public void toggleFavorite(String id) {
+        if (isFavorite(id)) favoriteSounds.remove(id); else favoriteSounds.put(id, true);
+        save();
+    }
     public void setPitch(String id,float value) { eventPitches.put(id,Math.max(.5f,Math.min(2f,value)));save(); }
     public void resetEvent(String id) { enabled.remove(id);eventVolumes.remove(id);eventPitches.remove(id);save(); }
     public void resetMixer() { master=1f;categoryVolumes.clear();eventVolumes.clear();eventPitches.clear();save(); }
