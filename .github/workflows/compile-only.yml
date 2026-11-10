@@ -1,7 +1,7 @@
 name: Shatsu Java compile-only validation
 on:
   push:
-    branches: [ui/presets-simple-shatsu-music]
+    branches: [ui/presets-simple-shatsu-music, v066/immersive-ui-audio]
     paths:
       - 'src/main/java/**'
       - 'build.gradle'
