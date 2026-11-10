@@ -39,6 +39,23 @@ public final class ShatsuScreen extends Screen {
         "More weight behind combat",
         "Only the essentials, quieter"
     };
+    // Friendly groups over the original low-level category keys.
+    // Grouping is presentation-only, so existing profile.json values remain compatible.
+    private static final String[] VOLUME_GROUPS = {
+        "Inventory", "Combat", "Blocks", "Movement", "Food & Drinks",
+        "Magic", "Nature & World", "Interactions & UI", "Other"
+    };
+    private static final String[][] VOLUME_GROUP_KEYS = {
+        {"inventory"},
+        {"combat"},
+        {"block_hit", "block_break", "block_place", "block_other"},
+        {"footsteps", "movement"},
+        {"food"},
+        {"magic"},
+        {"environment"},
+        {"interaction"},
+        {"other"}
+    };
     private static final String[] FILTERS = {"all", "block_hit", "block_break", "block_place",
         "footsteps", "block_other", "combat", "inventory", "movement", "environment",
         "interaction", "food", "magic", "other"};
@@ -55,7 +72,13 @@ public final class ShatsuScreen extends Screen {
         return addRenderableWidget(button);
     }
     private void refresh() { clearWidgets(); init(); }
-    private void tab(int selected) { tab = selected; page = 0; refresh(); }
+    private void tab(int selected) {
+        // Save volume edits when moving between screens; slider changes stay responsive.
+        if (tab == 2 && selected != tab) ShatsuConfig.save();
+        tab = selected;
+        page = 0;
+        refresh();
+    }
     @Override protected void init() {
         int x = panelX(), w = panelWidth();
         // The header is painted as typography instead of an inert giant button.
@@ -148,38 +171,76 @@ public final class ShatsuScreen extends Screen {
             page = Math.min(maxPage, page + 1); refresh();
         });
     }
+    /** Average for display only. Adjusting a mixed group intentionally unifies its levels. */
+    private float volumeGroupLevel(ShatsuConfig cfg, String[] keys) {
+        float sum = 0f;
+        for (String key : keys) sum += cfg.categoryVolumes.getOrDefault(key, 1f);
+        return sum / keys.length;
+    }
+
+    private boolean volumeGroupMixed(ShatsuConfig cfg, String[] keys) {
+        float first = cfg.categoryVolumes.getOrDefault(keys[0], 1f);
+        for (String key : keys) {
+            if (Math.abs(first - cfg.categoryVolumes.getOrDefault(key, 1f)) > .015f)
+                return true;
+        }
+        return false;
+    }
+
+    /** Familiar categories and one master slider. No raw event IDs or diagnostic controls. */
     private void mixer(int x, int y, int w) {
         ShatsuConfig cfg = ShatsuConfig.current();
-        addRenderableWidget(new ShatsuLevelSlider(x, y, w - 92, "MASTER VOLUME",
-                cfg.master, v -> cfg.master = (float) v));
-        action(x + w - 88, y, 88, 20, "Reset", () -> {
-            cfg.master = 1f; ShatsuConfig.save(); refresh();
+        addRenderableWidget(new ShatsuLevelSlider(x, y, w - 78,
+            "Master volume", cfg.master, v -> {
+                cfg.master = (float) v;
+                cfg.preset = "Custom";
+            }));
+        action(x + w - 74, y, 74, 20, "Reset", () -> {
+            cfg.master = 1f;
+            cfg.preset = "Custom";
+            ShatsuConfig.save();
+            status = "Master volume reset";
+            refresh();
         });
-        String[] cats = ShatsuConfig.CATEGORIES;
-        int visible = Math.max(1, Math.min(6, (height - y - 89) / 28));
-        int endPage = Math.max(0, (cats.length - 1) / visible);
-        mixerPage = Math.min(mixerPage, endPage);
+
+        int top = y + 42;
+        int footer = height - 61;
+        int visible = Math.max(1, Math.min(5, (footer - top - 5) / 31));
+        int maxPage = (VOLUME_GROUPS.length - 1) / visible;
+        mixerPage = Math.max(0, Math.min(mixerPage, maxPage));
+
         for (int i = 0; i < visible; i++) {
-            int index = mixerPage * visible + i;
-            if (index >= cats.length) break;
-            String key = cats[index];
-            int yy = y + 28 + i * 28;
-            float value = cfg.categoryVolumes.getOrDefault(key, 1f);
-            addRenderableWidget(new ShatsuLevelSlider(x, yy, w - 92,
-                    key.replace('_', ' ').toUpperCase(Locale.ROOT),
-                    value, v -> cfg.categoryVolumes.put(key, (float) v)));
-            action(x + w - 88, yy, 88, 20, "Default", () -> {
-                cfg.categoryVolumes.remove(key); ShatsuConfig.save(); refresh();
+            int idx = mixerPage * visible + i;
+            if (idx >= VOLUME_GROUPS.length) break;
+            String[] keys = VOLUME_GROUP_KEYS[idx];
+            String label = VOLUME_GROUPS[idx];
+            float value = volumeGroupLevel(cfg, keys);
+            boolean mixed = volumeGroupMixed(cfg, keys);
+            int yy = top + i * 31;
+            addRenderableWidget(new ShatsuLevelSlider(x, yy, w - 78,
+                label + (mixed ? " (mixed)" : ""), value, v -> {
+                    float newValue = (float) v;
+                    for (String key : keys) cfg.categoryVolumes.put(key, newValue);
+                    cfg.preset = "Custom";
+                }));
+            action(x + w - 74, yy, 74, 20, "Reset", () -> {
+                for (String key : keys) cfg.categoryVolumes.remove(key);
+                cfg.preset = "Custom";
+                ShatsuConfig.save();
+                status = label + " volume reset";
+                refresh();
             });
         }
-        int footer = Math.min(height - 53, y + 33 + visible * 28);
-        action(x, footer, 93, 19, "Previous", () -> {
-            mixerPage = Math.max(0, mixerPage - 1); refresh();
+
+        action(x, footer, 86, 19, "Previous", () -> {
+            ShatsuConfig.save();
+            mixerPage = Math.max(0, mixerPage - 1);
+            refresh();
         });
-        action(x + 97, footer, w - 194, 19, "Category page " + (mixerPage + 1) + "/" + (endPage + 1),
-            () -> {cfg.resetMixer(); refresh();});
-        action(x + w - 93, footer, 93, 19, "Next", () -> {
-            mixerPage = Math.min(endPage, mixerPage + 1); refresh();
+        action(x + w - 86, footer, 86, 19, "Next", () -> {
+            ShatsuConfig.save();
+            mixerPage = Math.min(maxPage, mixerPage + 1);
+            refresh();
         });
     }
 
@@ -286,6 +347,15 @@ public final class ShatsuScreen extends Screen {
         g.text(font, "SOUNDS  •  FABRIC 26.3", x + 101, 18, 0xFFC3A9E8);
         if (tab == 0)
             g.text(font, "YOUR SOUND, YOUR WAY", x + 8, 70, 0xFFCFB6FA);
+        if (tab == 2) {
+            g.text(font, "SOUND CATEGORIES", x + 8, 92, 0xFFCFB6FA);
+            int top = 65 + 42;
+            int footer = height - 61;
+            int visible = Math.max(1, Math.min(5, (footer - top - 5) / 31));
+            int maxPage = (VOLUME_GROUPS.length - 1) / visible;
+            g.text(font, (mixerPage + 1) + " / " + (maxPage + 1),
+                x + Math.max(90, panelWidth() / 2 - 16), height - 57, 0xFFC3A9E8);
+        }
         if (tab == 1) {
             int top = 89;
             int visible = Math.max(1, Math.min(4, (height - top - 65) / 36));
