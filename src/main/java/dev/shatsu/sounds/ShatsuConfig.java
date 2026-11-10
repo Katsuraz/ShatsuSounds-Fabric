@@ -19,6 +19,7 @@ public final class ShatsuConfig {
     private static final Path PATH = FabricLoader.getInstance().getConfigDir().resolve("shatsu-sounds/profile.json");
     private static volatile ShatsuConfig ACTIVE = new ShatsuConfig();
     public float master = 1.0f;
+    public boolean inventoryAudioEnabled = true;
     public String preset = "Balanced";
     public Map<String, Float> categoryVolumes = new HashMap<>();
     public Map<String, Float> eventVolumes = new HashMap<>();
