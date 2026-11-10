@@ -71,8 +71,10 @@ public final class ShatsuInventoryAudio {
 
         // Suppress only the same hook invoked twice for exactly the same click.
         // Do not globally suppress different items, slots or actions.
-        String signature = eventPath + "/" + System.identityHashCode(slot) + "/"
-            + mouseButton + "/" + BuiltInRegistries.ITEM.getKey(target.getItem());
+        // A creative override may call the base handler after changing the cursor.
+        // Identity of the physical click stays the same, even if its selected audio changes.
+        String signature = System.identityHashCode(client.gui.screen()) + "/"
+            + System.identityHashCode(slot) + "/" + type + "/" + mouseButton;
         long now = System.nanoTime();
         if (signature.equals(lastSignature) && now - lastSoundNanos < 18_000_000L)
             return;
