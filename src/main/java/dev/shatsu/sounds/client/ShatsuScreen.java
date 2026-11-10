@@ -4,7 +4,7 @@ import dev.shatsu.sounds.ShatsuCatalog;
 import dev.shatsu.sounds.ShatsuConfig;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.Button;
+// Shatsu buttons are custom-rendered widgets, not Minecraft Button sprites.
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import java.util.function.DoubleConsumer;
@@ -73,12 +73,12 @@ public final class ShatsuScreen extends Screen {
         super(Component.literal("Shatsu Sounds"));
         this.previous = previous;
     }
-    private int panelWidth() { return Math.min(500, Math.max(280, width - 20)); }
+    private int panelWidth() { return Math.min(620, Math.max(280, width - 22)); }
     private int panelX() { return Math.max(7, (width - panelWidth()) / 2); }
-    private Button action(int x, int y, int w, int h, String text, Runnable callback) {
-        Button button = Button.builder(Component.literal(text), b -> callback.run())
-            .pos(x, y).size(Math.max(20, w), h).build();
-        return addRenderableWidget(button);
+    private ShatsuSoftButton action(int x, int y, int w, int h, String text, Runnable callback) {
+        boolean accent = text.startsWith("• ") || text.contains("  - Active")
+            || text.equals("Save & Close") || text.equals("Play sound");
+        return addRenderableWidget(new ShatsuSoftButton(x, y, w, h, Component.literal(text), callback, accent));
     }
     private void refresh() { clearWidgets(); init(); }
     private void tab(int selected) {
@@ -293,13 +293,13 @@ public final class ShatsuScreen extends Screen {
                 refresh();
             });
 
-        addRenderableWidget(new ShatsuLevelSlider(x, y + step * 3, w,
-            "Sound volume", cfg.eventVolumes.getOrDefault(id, 1f), v -> {
+        addRenderableWidget(new ShatsuSoftSlider(x, y + step * 3, w,
+            "Sound volume", cfg.eventVolumes.getOrDefault(id, 1f), 0f, 2f, false, v -> {
                 cfg.eventVolumes.put(id, (float) v);
                 cfg.preset = "Custom";
             }));
-        addRenderableWidget(new ShatsuPitchSlider(x, y + step * 4, w,
-            cfg.eventPitches.getOrDefault(id, 1f), v -> {
+        addRenderableWidget(new ShatsuSoftSlider(x, y + step * 4, w,
+            "Pitch", cfg.eventPitches.getOrDefault(id, 1f), .5f, 2f, true, v -> {
                 cfg.eventPitches.put(id, (float) v);
                 cfg.preset = "Custom";
             }));
@@ -332,8 +332,8 @@ public final class ShatsuScreen extends Screen {
     /** Familiar categories and one master slider. No raw event IDs or diagnostic controls. */
     private void mixer(int x, int y, int w) {
         ShatsuConfig cfg = ShatsuConfig.current();
-        addRenderableWidget(new ShatsuLevelSlider(x, y, w - 78,
-            "Master volume", cfg.master, v -> {
+        addRenderableWidget(new ShatsuSoftSlider(x, y, w - 78,
+            "Master volume", cfg.master, 0f, 2f, false, v -> {
                 cfg.master = (float) v;
                 cfg.preset = "Custom";
             }));
@@ -359,8 +359,8 @@ public final class ShatsuScreen extends Screen {
             float value = volumeGroupLevel(cfg, keys);
             boolean mixed = volumeGroupMixed(cfg, keys);
             int yy = top + i * 31;
-            addRenderableWidget(new ShatsuLevelSlider(x, yy, w - 78,
-                label + (mixed ? " (mixed)" : ""), value, v -> {
+            addRenderableWidget(new ShatsuSoftSlider(x, yy, w - 78,
+                label + (mixed ? " (mixed)" : ""), value, 0f, 2f, false, v -> {
                     float newValue = (float) v;
                     for (String key : keys) cfg.categoryVolumes.put(key, newValue);
                     cfg.preset = "Custom";
@@ -483,28 +483,31 @@ public final class ShatsuScreen extends Screen {
         }
     }
 
-    /** Shatsu music-app colors, adapted to Minecraft's native UI renderer. */
+    /** Modern app-inspired surface, built from simple GPU-efficient rects. */
     @Override public void extractBackground(GuiGraphicsExtractor g, int mx, int my, float partialTick) {
         int px = panelX(), w = panelWidth();
-        g.fillGradient(0, 0, width, height, 0xF0181425, 0xF0101019);
-        g.fill(px - 10, 6, px + w + 10, height - 6, 0xEE242032);
-        g.outline(px - 10, 6, w + 20, height - 12, 0xFF625178);
-        g.fill(px - 10, 6, px + w + 10, 9, 0xFFBD9BFF);
-        g.fill(px, 62, px + w, 63, 0xFF4C3E60);
-        g.fill(px, height - 32, px + w, height - 31, 0xFF4C3E60);
+        g.fillGradient(0, 0, width, height, 0xFF14101C, 0xFF0C0A11);
+        // Soft shadow and cut-corner app shell, independent of Minecraft GUI sprites.
+        g.fill(px - 10, 8, px + w + 10, height - 7, 0x7A000000);
+        g.fill(px - 8, 10, px + w + 8, height - 9, 0xFF242032);
+        g.fill(px - 8, 16, px + w + 8, height - 15, 0xFF242032);
+        g.fill(px - 2, 12, px + w + 2, 14, 0xFF7B6897);
+        g.fill(px, 60, px + w, 61, 0xFF43374F);
+        g.fill(px, height - 31, px + w, height - 30, 0xFF43374F);
         if (tab == 0) {
-            for (int yy = 89; yy <= 169 && yy + 30 < height - 33; yy += 40)
-                g.fill(px - 3, yy - 3, px + w + 3, yy + 33, 0x663F3551);
+            for (int yy = 87; yy <= 167 && yy + 31 < height - 34; yy += 40) {
+                g.fill(px - 1, yy, px + w + 1, yy + 34, 0xFF2D263A);
+            }
         } else if (tab == 1) {
             int top = 89;
             int visible = Math.max(1, Math.min(4, (height - top - 65) / 36));
             for (int i = 0; i < visible; i++) {
                 int idx = presetPage * visible + i;
                 if (idx >= PRESET_NAMES.length) break;
-                int yy = top + i * 36;
-                int bg = PRESET_NAMES[idx].equals(ShatsuConfig.current().preset)
-                    ? 0xAA584378 : 0x66352C49;
-                g.fill(px, yy - 2, px + w, yy + 34, bg);
+                if (PRESET_NAMES[idx].equals(ShatsuConfig.current().preset)) {
+                    int yy = top + i * 36;
+                    g.fill(px - 1, yy - 3, px + w + 1, yy + 33, 0xAA55456E);
+                }
             }
         }
     }
@@ -512,8 +515,8 @@ public final class ShatsuScreen extends Screen {
     @Override public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float partialTick) {
         super.extractRenderState(g, mx, my, partialTick);
         int x = panelX();
-        g.text(font, "SHATSU", x + 8, 18, 0xFFF8F3FF);
-        g.text(font, "SOUNDS  •  FABRIC 26.3", x + 101, 18, 0xFFC3A9E8);
+        g.text(font, "S H A T S U", x + 8, 18, 0xFFF8F3FF);
+        g.text(font, "SOUND STUDIO  /  26.3", x + 122, 18, 0xFFC3A9E8);
         if (tab == 0)
             g.text(font, "YOUR SOUND, YOUR WAY", x + 8, 70, 0xFFCFB6FA);
         if (tab == 3 && selectedSoundId == null && choosingLibraryCategory)
