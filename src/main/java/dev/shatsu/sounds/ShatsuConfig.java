@@ -13,17 +13,19 @@ import java.util.Map;
 public final class ShatsuConfig {
     public static final String[] CATEGORIES = {
         "block_hit", "block_break", "block_place", "footsteps", "block_other",
-        "combat", "inventory", "movement", "environment", "interaction", "food", "magic", "other"
+        "combat", "inventory", "movement", "environment", "interaction", "food", "magic", "animals", "liquids", "other"
     };
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path PATH = FabricLoader.getInstance().getConfigDir().resolve("shatsu-sounds/profile.json");
     private static volatile ShatsuConfig ACTIVE = new ShatsuConfig();
     public float master = 1.0f;
+    public boolean inventoryAudioEnabled = true;
     public String preset = "Balanced";
     public Map<String, Float> categoryVolumes = new HashMap<>();
     public Map<String, Float> eventVolumes = new HashMap<>();
     public Map<String, Float> eventPitches = new HashMap<>();
     public Map<String, Boolean> enabled = new HashMap<>();
+    public Map<String, Boolean> favoriteSounds = new HashMap<>();
     private ShatsuConfig() {}
     public static ShatsuConfig current() { return ACTIVE; }
     public static synchronized void load() {
@@ -35,6 +37,7 @@ public final class ShatsuConfig {
                     if (result.eventVolumes == null) result.eventVolumes = new HashMap<>();
                     if (result.eventPitches == null) result.eventPitches = new HashMap<>();
                     if (result.enabled == null) result.enabled = new HashMap<>();
+                    if (result.favoriteSounds == null) result.favoriteSounds = new HashMap<>();
                     ACTIVE = result;
                 }
             } else save();
@@ -60,6 +63,13 @@ public final class ShatsuConfig {
             return "block_other";
         }
         if (id.contains("experience_orb") || id.contains("totem")) return "magic";
+        if (id.startsWith("animal.") || id.startsWith("entity.zombie.")
+                || id.startsWith("entity.ender_dragon.") || id.startsWith("entity.spider.")
+                || id.startsWith("entity.cave_spider.") || id.startsWith("entity.skeleton.")
+                || id.startsWith("entity.skeleton_horse.") || id.startsWith("entity.zombie_horse."))
+            return "animals";
+        if (id.startsWith("drink.") || id.contains("bucket.") || id.startsWith("liquid."))
+            return "liquids";
         if (id.contains("shield")) return "combat";
         if (id.contains("inventory") || id.contains("typing") || id.contains("item_click") || id.contains("item_drag")) return "inventory";
         if (id.contains("step") || id.contains("landing") || id.contains("swim")) return "movement";
@@ -80,6 +90,11 @@ public final class ShatsuConfig {
     public void setCategory(String category,float volume) { categoryVolumes.put(category,clamp(volume));save(); }
     public void setVolume(String id,float volume) { eventVolumes.put(id,clamp(volume));save(); }
     public void setEnabled(String id,boolean value) { enabled.put(id,value);save(); }
+    public boolean isFavorite(String id) { return Boolean.TRUE.equals(favoriteSounds.get(id)); }
+    public void toggleFavorite(String id) {
+        if (isFavorite(id)) favoriteSounds.remove(id); else favoriteSounds.put(id, true);
+        save();
+    }
     public void setPitch(String id,float value) { eventPitches.put(id,Math.max(.5f,Math.min(2f,value)));save(); }
     public void resetEvent(String id) { enabled.remove(id);eventVolumes.remove(id);eventPitches.remove(id);save(); }
     public void resetMixer() { master=1f;categoryVolumes.clear();eventVolumes.clear();eventPitches.clear();save(); }
@@ -88,6 +103,7 @@ public final class ShatsuConfig {
         master = 1f;
         categoryVolumes.clear();
         switch(name) {
+            case "Retro" -> { master=1.05f; categoryVolumes.put("combat",1.15f); categoryVolumes.put("inventory",1.1f); categoryVolumes.put("interaction",1.1f); categoryVolumes.put("magic",1.05f); }
             case "Soft ASMR" -> { master=.7f; categoryVolumes.put("combat",.65f);categoryVolumes.put("inventory",.7f);categoryVolumes.put("magic",.65f); }
             case "Crisp & Tactile" -> { categoryVolumes.put("inventory",1.1f);categoryVolumes.put("block_hit",1.05f); }
             case "Immersive" -> { categoryVolumes.put("environment",1.1f);categoryVolumes.put("movement",1.1f); }

@@ -4,7 +4,12 @@
   "package": "dev.shatsu.sounds.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
-    "SoundEngineMixin"
+    "SoundEngineMixin",
+    "ShatsuInventoryScreenMixin",
+    "ShatsuCreativeInventoryScreenMixin",
+    "ShatsuSnowballImpactMixin",
+    "ShatsuEggImpactMixin",
+    "ShatsuCaveSpiderPacketMixin"
   ],
   "injectors": {
     "defaultRequire": 0

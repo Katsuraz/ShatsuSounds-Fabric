@@ -1,0 +1,31 @@
+name: Shatsu Java compile-only validation
+on:
+  push:
+    branches: [ui/presets-simple-shatsu-music]
+    paths:
+      - 'src/main/java/**'
+      - 'build.gradle'
+      - 'gradle.properties'
+      - '.github/workflows/compile-only.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.8.1'
+      - name: Compile Java only (no audio processing needed)
+        run: gradle compileJava --stacktrace --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Shatsu-Java-Classes-26.3
+          path: build/classes/java/main/**
+          if-no-files-found: error

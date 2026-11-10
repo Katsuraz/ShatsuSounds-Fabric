@@ -8,6 +8,9 @@ import net.fabricmc.loader.api.FabricLoader;
 public final class ShatsuClient implements ClientModInitializer {
     @Override public void onInitializeClient() {
         ShatsuConfig.load();
+        System.out.println("[Shatsu Sounds] Inventory audio " +
+            (ShatsuConfig.current().inventoryAudioEnabled ? "enabled" : "disabled") +
+            "; hook activity is logged on first interactions");
         ShatsuGenericAttackFeedback.register();
         ShatsuShieldReady.register();
         System.out.println("[Shatsu Sounds] Audio catalog events: " + ShatsuCatalog.size());
