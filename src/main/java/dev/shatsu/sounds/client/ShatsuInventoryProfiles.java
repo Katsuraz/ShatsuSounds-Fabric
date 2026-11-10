@@ -40,6 +40,11 @@ public final class ShatsuInventoryProfiles {
         if (id == null || id.isBlank()) return "utility";
         String key = id.contains(":") ? id.toLowerCase(Locale.ROOT) : "minecraft:" + id.toLowerCase(Locale.ROOT);
         String name = key.substring(key.indexOf(':') + 1);
+        // The validated profile table is authoritative for all known items.
+        // Keep the conservative fallback rules only for newly added modded items
+        // or when an older JAR omits the table.
+        String explicit = EXPLICIT.get(key);
+        if (explicit != null && !explicit.isBlank()) return explicit;
         if (name.equals("enchanted_golden_apple")) return "enchanted_apple";
         if (name.equals("trident")) return "trident_item";
         if (name.equals("stonecutter")) return "stonecutter_handling";
@@ -59,8 +64,6 @@ public final class ShatsuInventoryProfiles {
         if (name.equals("bamboo")) return "plant_bamboo";
         if (name.equals("moss_block") || name.equals("moss_carpet")) return "plant_moss";
         if (name.equals("bamboo_mosaic") || name.equals("bamboo_block")) return "wooden";
-        String explicit = EXPLICIT.get(key);
-        if (explicit != null && !explicit.isBlank()) return explicit;
         if (name.startsWith("music_disc_")) return "music_disc";
         if (name.endsWith("_spawn_egg")) return "spawn_egg";
         if (name.endsWith("_bucket")) return "fish_bucket";
