@@ -26,6 +26,8 @@ public final class ShatsuScreen extends Screen {
     private int tab = 0, filter = 0, page = 0, mixerPage = 0, presetPage = 0;
     private String selectedSoundId = null;
     private boolean favoritesOnly = false;
+    private boolean choosingLibraryCategory = false;
+    private int libraryCategoryPage = 0;
     private SoundInstance activePreview;
     private static final String[] TABS = {"Home", "Presets", "Volume", "Library"};
     private static final String[] PRESET_NAMES = {
@@ -80,6 +82,7 @@ public final class ShatsuScreen extends Screen {
         if ((tab == 2 || tab == 3) && selected != tab) ShatsuConfig.save();
         if (tab == 3 && selected != tab) {
             selectedSoundId = null;
+            choosingLibraryCategory = false;
             if (activePreview != null) stopPreview();
         }
         tab = selected;
@@ -156,6 +159,10 @@ public final class ShatsuScreen extends Screen {
             librarySoundDetail(x, y, w, selectedSoundId);
             return;
         }
+        if (choosingLibraryCategory) {
+            libraryCategoryPicker(x, y, w);
+            return;
+        }
 
         int searchW = Math.max(90, w - 133);
         EditBox field = new EditBox(font, x, y, searchW, 20, Component.literal("Search sounds"));
@@ -171,9 +178,9 @@ public final class ShatsuScreen extends Screen {
         });
 
         int categoryW = w - 107;
-        action(x, y + 24, categoryW, 20, LIBRARY_FILTERS[filter], () -> {
-            filter = (filter + 1) % LIBRARY_FILTERS.length;
-            page = 0;
+        action(x, y + 24, categoryW, 20, "Category: " + LIBRARY_FILTERS[filter], () -> {
+            choosingLibraryCategory = true;
+            libraryCategoryPage = 0;
             refresh();
         });
         action(x + categoryW + 4, y + 24, w - categoryW - 4, 20,
@@ -221,6 +228,38 @@ public final class ShatsuScreen extends Screen {
             refresh();
         });
         // Result count and page number are displayed as non-clickable text.
+    }
+
+    /** Choose a category directly rather than cycling through a long list. */
+    private void libraryCategoryPicker(int x, int y, int w) {
+        action(x, y, w, 20, "< Back to sounds", () -> {
+            choosingLibraryCategory = false;
+            refresh();
+        });
+        int first = y + 28;
+        int footer = height - 61;
+        int perPage = Math.max(1, Math.min(6, (footer - first - 3) / 28));
+        int maxPage = Math.max(0, (LIBRARY_FILTERS.length - 1) / perPage);
+        libraryCategoryPage = Math.max(0, Math.min(libraryCategoryPage, maxPage));
+        for (int i = 0; i < perPage; i++) {
+            int selected = libraryCategoryPage * perPage + i;
+            if (selected >= LIBRARY_FILTERS.length) break;
+            action(x, first + i * 28, w, 24,
+                (filter == selected ? "✓  " : "") + LIBRARY_FILTERS[selected], () -> {
+                    filter = selected;
+                    page = 0;
+                    choosingLibraryCategory = false;
+                    refresh();
+                });
+        }
+        action(x, footer, 84, 20, "Previous", () -> {
+            libraryCategoryPage = Math.max(0, libraryCategoryPage - 1);
+            refresh();
+        });
+        action(x + w - 84, footer, 84, 20, "Next", () -> {
+            libraryCategoryPage = Math.min(maxPage, libraryCategoryPage + 1);
+            refresh();
+        });
     }
 
     private void librarySoundDetail(int x, int y, int w, String id) {
@@ -463,13 +502,18 @@ public final class ShatsuScreen extends Screen {
         g.text(font, "SOUNDS  •  FABRIC 26.3", x + 101, 18, 0xFFC3A9E8);
         if (tab == 0)
             g.text(font, "YOUR SOUND, YOUR WAY", x + 8, 70, 0xFFCFB6FA);
-        if (tab == 3 && selectedSoundId == null) {
+        if (tab == 3 && selectedSoundId == null && choosingLibraryCategory)
+            g.text(font, "CHOOSE A SOUND CATEGORY", x + 8, 84, 0xFFCFB6FA);
+        if (tab == 3 && selectedSoundId == null && !choosingLibraryCategory) {
             List<ShatsuCatalog.Entry> hits = matchingSounds();
             int listY = 65 + 58;
             int footer = height - 61;
             int perPage = Math.max(1, Math.min(8, (footer - listY - 4) / 27));
             int maxPage = Math.max(0, (hits.size() - 1) / perPage);
             g.text(font, hits.size() + " sounds", x + 8, 113, 0xFFC3A9E8);
+            if (hits.isEmpty())
+                g.text(font, "No matches. Clear search or choose All sounds.",
+                    x + 8, Math.min(height - 85, 151), 0xFFBDB0CD);
             g.text(font, (page + 1) + " / " + (maxPage + 1),
                 x + Math.max(90, panelWidth() / 2 - 16), height - 57, 0xFFC3A9E8);
         }
@@ -510,8 +554,12 @@ public final class ShatsuScreen extends Screen {
         try {
             var manager = Minecraft.getInstance().getSoundManager();
             var key = Identifier.parse(id);
+            if (Boolean.FALSE.equals(ShatsuConfig.current().enabled.get(id))) {
+                status = "This sound is muted. Enable it to preview.";
+                return;
+            }
             if (manager.getSoundEvent(key) == null) {
-                status = "Not registered: " + id;
+                status = "Preview unavailable for this sound";
                 System.err.println("[Shatsu Sounds] Missing preview event " + id);
                 return;
             }
@@ -519,7 +567,7 @@ public final class ShatsuScreen extends Screen {
             activePreview = SimpleSoundInstance.forUI(
                 SoundEvent.createVariableRangeEvent(key), 1.0f, 1.0f);
             manager.play(activePreview);
-            status = "Playing " + id;
+            status = "Playing " + shortened(friendlySoundName(id), 43);
         } catch (Exception ex) {
             status = "Preview failed: see latest.log";
             System.err.println("[Shatsu Sounds] Preview " + id + ": " + ex);
