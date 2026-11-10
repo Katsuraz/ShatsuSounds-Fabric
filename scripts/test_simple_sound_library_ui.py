@@ -15,7 +15,7 @@ class SoundLibraryUITests(unittest.TestCase):
         self.assertIn("matchingSounds()", SCREEN)
         self.assertIn("matchesLibraryCategory(e)", SCREEN)
         self.assertIn("VOLUME_GROUP_KEYS[filter - 1]", SCREEN)
-        self.assertIn("e.category()", SCREEN)
+        self.assertIn("entry.category()", SCREEN)
 
     def test_search_and_pagination(self):
         self.assertIn("EditBox field", SCREEN)
