@@ -33,7 +33,7 @@ class SimpleVolumePageTests(unittest.TestCase):
     def test_friendly_labels_and_master(self):
         names = re.findall(r'"([^"]+)"',
             java_string_array(SCREEN, r"String\[\] VOLUME_GROUPS"))
-        self.assertEqual(len(names), 9)
+        self.assertEqual(len(names), 11)
         self.assertTrue(all("_" not in name for name in names))
         self.assertIn('"Master volume"', SCREEN)
         self.assertIn("volumeGroupMixed(cfg, keys)", SCREEN)
