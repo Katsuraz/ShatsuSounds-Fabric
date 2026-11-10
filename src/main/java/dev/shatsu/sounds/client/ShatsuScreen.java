@@ -29,6 +29,7 @@ public final class ShatsuScreen extends Screen {
     private boolean choosingLibraryCategory = false;
     private int libraryCategoryPage = 0;
     private SoundInstance activePreview;
+    private ShatsuAudioHealth.Snapshot audioHealth;
     private static final String[] TABS = {"Home", "Presets", "Volume", "Library"};
     private static final String[] PRESET_NAMES = {
         "Balanced", "Retro", "Soft ASMR", "Crisp & Tactile",
@@ -102,11 +103,13 @@ public final class ShatsuScreen extends Screen {
             action(x + i * navW, 37, navW - 2, 20,
                 (tab == i ? "• " : "") + TABS[i], () -> tab(selected));
         }
+        action(x + w - 26, 11, 24, 19, "?", () -> tab(4));
         switch (tab) {
             case 0 -> dashboard(x, 65, w);
             case 1 -> presets(x, 65, w);
             case 2 -> mixer(x, 65, w);
             case 3 -> library(x, 65, w);
+            case 4 -> audioHealth(x, 65, w);
             default -> dashboard(x, 65, w);
         }
         action(x, height - 27, Math.max(90, w / 2 - 3), 20,
@@ -115,6 +118,15 @@ public final class ShatsuScreen extends Screen {
         action(x + w / 2 + 3, height - 27, w / 2 - 3, 20,
             "Save & Close", this::onClose);
     }
+    private void audioHealth(int x, int y, int w) {
+        audioHealth = ShatsuAudioHealth.scan();
+        action(x, y, w, 21, "Rescan live sound events", this::refresh);
+        action(x, y + 27, (w - 6) / 2, 21, "Preview sword swing",
+            () -> preview("clangor:swing.sword.iron"));
+        action(x + (w + 6) / 2, y + 27, (w - 6) / 2, 21,
+            "Preview potion sip", () -> preview("shatsu_liquids:drink.potion"));
+    }
+
     private void dashboard(int x, int y, int w) {
         var cfg = ShatsuConfig.current();
         action(x, y + 24, w, 30, "Presets   /   " + cfg.preset, () -> tab(1));
@@ -519,6 +531,30 @@ public final class ShatsuScreen extends Screen {
         g.text(font, "SOUND STUDIO  /  26.3", x + 122, 18, 0xFFC3A9E8);
         if (tab == 0)
             g.text(font, "YOUR SOUND, YOUR WAY", x + 8, 70, 0xFFCFB6FA);
+        if (tab == 4 && audioHealth != null) {
+            g.text(font, "AUDIO HEALTH  /  READ-ONLY", x + 8, 120, 0xFFCFB6FA);
+            int yy = 135, line = 13;
+            g.text(font, "Clangor: " + (audioHealth.clangorInstalled() ? "installed" : "not installed"),
+                x + 8, yy, 0xFFEAE0F1);
+            yy += line;
+            g.text(font, "Swing events: " + audioHealth.registeredSwings() + " / " + audioHealth.declaredSwings() + " registered",
+                x + 8, yy, 0xFFEAE0F1);
+            yy += line;
+            g.text(font, "Inventory clicks: " + audioHealth.inventoryClicks() +
+                "   Missing: " + audioHealth.inventoryMissing(), x + 8, yy, 0xFFEAE0F1);
+            yy += line;
+            g.text(font, "Drinking: " + audioHealth.drinkingEnabled() +
+                "   Local: " + audioHealth.drinkingLocal() +
+                "   Missing: " + audioHealth.drinkingMissing(), x + 8, yy, 0xFFEAE0F1);
+            yy += line;
+            g.text(font, "Remote food events: " + audioHealth.drinkingRemote(), x + 8, yy, 0xFFEAE0F1);
+            yy += line;
+            if (height > yy + 58) {
+                g.text(font, "Registered audio is NOT proof of gameplay triggering.", x + 8, yy + 3, 0xFFBDB0CD);
+                g.text(font, shortened(audioHealth.interpretation(), Math.max(24, panelWidth() / 6)),
+                    x + 8, yy + 17, 0xFFBDB0CD);
+            }
+        }
         if (tab == 3 && selectedSoundId == null && choosingLibraryCategory)
             g.text(font, "CHOOSE A SOUND CATEGORY", x + 8, 84, 0xFFCFB6FA);
         if (tab == 3 && selectedSoundId == null && !choosingLibraryCategory) {
