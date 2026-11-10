@@ -21,4 +21,19 @@ abstract class SoundEngineMixin {
         float base=original.call(instance);
         return Math.max(0f,Math.min(2f,base*ShatsuConfig.current().multiplier(instance.getIdentifier().toString())));
     }
+
+    /** Apply per-sound pitch from Sound Studio to real playback as well as previews.
+     * Does not change events without a user pitch override.
+     */
+    @WrapOperation(
+        method = "play",
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/resources/sounds/SoundInstance;getPitch()F"),
+        require = 0)
+    private float shatsu$pitch(SoundInstance instance, Operation<Float> original) {
+        float base = original.call(instance);
+        String id = instance.getIdentifier().toString();
+        ShatsuConfig cfg = ShatsuConfig.current();
+        if (!cfg.eventPitches.containsKey(id)) return base;
+        return Math.max(.5f, Math.min(2f, base * cfg.pitch(id)));
+    }
 }
