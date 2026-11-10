@@ -13,7 +13,7 @@ import java.util.Map;
 public final class ShatsuConfig {
     public static final String[] CATEGORIES = {
         "block_hit", "block_break", "block_place", "footsteps", "block_other",
-        "combat", "inventory", "movement", "environment", "interaction", "food", "magic", "other"
+        "combat", "inventory", "movement", "environment", "interaction", "food", "magic", "animals", "liquids", "other"
     };
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path PATH = FabricLoader.getInstance().getConfigDir().resolve("shatsu-sounds/profile.json");
@@ -63,6 +63,13 @@ public final class ShatsuConfig {
             return "block_other";
         }
         if (id.contains("experience_orb") || id.contains("totem")) return "magic";
+        if (id.startsWith("animal.") || id.startsWith("entity.zombie.")
+                || id.startsWith("entity.ender_dragon.") || id.startsWith("entity.spider.")
+                || id.startsWith("entity.cave_spider.") || id.startsWith("entity.skeleton.")
+                || id.startsWith("entity.skeleton_horse.") || id.startsWith("entity.zombie_horse."))
+            return "animals";
+        if (id.startsWith("drink.") || id.contains("bucket.") || id.startsWith("liquid."))
+            return "liquids";
         if (id.contains("shield")) return "combat";
         if (id.contains("inventory") || id.contains("typing") || id.contains("item_click") || id.contains("item_drag")) return "inventory";
         if (id.contains("step") || id.contains("landing") || id.contains("swim")) return "movement";
