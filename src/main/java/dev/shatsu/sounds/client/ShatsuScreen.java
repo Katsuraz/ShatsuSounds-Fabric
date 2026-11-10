@@ -405,6 +405,16 @@ public final class ShatsuScreen extends Screen {
             action(x + 4, yy, w - 8, 23,
                 (selected ? "✓  " : "") + name + (selected ? "  - Active" : ""), () -> {
                     cfg.applyPreset(name);
+                    // The v0.6.4 sound engine predates the Retro preset, so
+                    // apply its mix explicitly without replacing that engine.
+                    if ("Retro".equals(name)) {
+                        cfg.master = 1.05f;
+                        cfg.categoryVolumes.put("combat", 1.15f);
+                        cfg.categoryVolumes.put("inventory", 1.10f);
+                        cfg.categoryVolumes.put("interaction", 1.10f);
+                        cfg.categoryVolumes.put("magic", 1.05f);
+                        ShatsuConfig.save();
+                    }
                     status = name + " preset applied";
                     refresh();
                 });
