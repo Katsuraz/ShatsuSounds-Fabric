@@ -24,6 +24,8 @@ public final class ShatsuScreen extends Screen {
     private String query = "";
     private String status = "";
     private int tab = 0, filter = 0, page = 0, mixerPage = 0, presetPage = 0;
+    private String selectedSoundId = null;
+    private boolean favoritesOnly = false;
     private SoundInstance activePreview;
     private static final String[] TABS = {"Home", "Presets", "Volume", "Library"};
     private static final String[] PRESET_NAMES = {
@@ -56,9 +58,10 @@ public final class ShatsuScreen extends Screen {
         {"interaction"},
         {"other"}
     };
-    private static final String[] FILTERS = {"all", "block_hit", "block_break", "block_place",
-        "footsteps", "block_other", "combat", "inventory", "movement", "environment",
-        "interaction", "food", "magic", "other"};
+    private static final String[] LIBRARY_FILTERS = {
+        "All sounds", "Inventory", "Combat", "Blocks", "Movement", "Food & Drinks",
+        "Magic", "Nature & World", "Interactions & UI", "Other"
+    };
 
     public ShatsuScreen(Screen previous) {
         super(Component.literal("Shatsu Sounds"));
@@ -73,8 +76,12 @@ public final class ShatsuScreen extends Screen {
     }
     private void refresh() { clearWidgets(); init(); }
     private void tab(int selected) {
-        // Save volume edits when moving between screens; slider changes stay responsive.
-        if (tab == 2 && selected != tab) ShatsuConfig.save();
+        // Save volume and per-sound edits when switching screens.
+        if ((tab == 2 || tab == 3) && selected != tab) ShatsuConfig.save();
+        if (tab == 3 && selected != tab) {
+            selectedSoundId = null;
+            if (activePreview != null) stopPreview();
+        }
         tab = selected;
         page = 0;
         refresh();
@@ -96,8 +103,8 @@ public final class ShatsuScreen extends Screen {
             default -> dashboard(x, 65, w);
         }
         action(x, height - 27, Math.max(90, w / 2 - 3), 20,
-            tab == 3 ? "Stop preview" : (tab == 0 ? "Close" : "Home"),
-            () -> { if (tab == 3) stopPreview(); else if (tab == 0) onClose(); else tab(0); });
+            tab == 3 && selectedSoundId == null ? "Stop preview" : (tab == 0 ? "Close" : "Home"),
+            () -> { if (tab == 3 && selectedSoundId == null) stopPreview(); else if (tab == 0) onClose(); else tab(0); });
         action(x + w / 2 + 3, height - 27, w / 2 - 3, 20,
             "Save & Close", this::onClose);
     }
@@ -105,72 +112,164 @@ public final class ShatsuScreen extends Screen {
         var cfg = ShatsuConfig.current();
         action(x, y + 24, w, 30, "Presets   /   " + cfg.preset, () -> tab(1));
         action(x, y + 64, w, 30, "Volume   /   " + Math.round(cfg.master * 100) + "%", () -> tab(2));
-        action(x, y + 104, w, 30, "Sound library   /   Browse & preview", () -> tab(3));
+        action(x, y + 104, w, 30, "Sound library   /   Browse, preview & edit", () -> tab(3));
     }
+
+    /** Friendly names keep raw technical IDs out of the everyday library UI. */
+    private static String friendlySoundName(String id) {
+        String path = id.contains(":") ? id.substring(id.indexOf(':') + 1) : id;
+        String[] tokens = path.replace('/', '.').replace('-', '_').split("\\.");
+        StringBuilder name = new StringBuilder();
+        for (String token : tokens) {
+            if (token.isBlank()) continue;
+            if (name.length() > 0) name.append(" ");
+            String word = token.replace('_', ' ');
+            name.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
+        }
+        return name.length() == 0 ? id : name.toString();
+    }
+
+    private static String shortened(String value, int max) {
+        return value.length() > max ? value.substring(0, Math.max(1, max - 3)) + "..." : value;
+    }
+
+    private boolean matchesLibraryCategory(ShatsuCatalog.Entry entry) {
+        if (filter == 0) return true;
+        String[] keys = VOLUME_GROUP_KEYS[filter - 1];
+        for (String key : keys) if (key.equals(entry.category())) return true;
+        return false;
+    }
+
+    private List<ShatsuCatalog.Entry> matchingSounds() {
+        String search = query.trim().toLowerCase(Locale.ROOT);
+        ShatsuConfig cfg = ShatsuConfig.current();
+        return ShatsuCatalog.all().stream()
+            .filter(e -> matchesLibraryCategory(e)
+                && (!favoritesOnly || cfg.isFavorite(e.id()))
+                && (search.isBlank() || e.id().toLowerCase(Locale.ROOT).contains(search)
+                    || friendlySoundName(e.id()).toLowerCase(Locale.ROOT).contains(search)))
+            .toList();
+    }
+
     private void library(int x, int y, int w) {
-        int searchW = Math.max(80, w - 167);
-        EditBox field = new EditBox(font, x, y, searchW, 20, Component.literal("Find a sound"));
+        if (selectedSoundId != null) {
+            librarySoundDetail(x, y, w, selectedSoundId);
+            return;
+        }
+
+        int searchW = Math.max(90, w - 133);
+        EditBox field = new EditBox(font, x, y, searchW, 20, Component.literal("Search sounds"));
         field.setValue(query);
-        field.setHint(Component.literal("Search by event ID..."));
-        field.setResponder(v -> { query = v; page = 0; });
+        field.setHint(Component.literal("Find an item or sound..."));
+        field.setResponder(value -> { query = value; page = 0; });
         addRenderableWidget(field);
-        action(x + searchW + 4, y, 53, 20, "Find", this::refresh);
-        action(x + searchW + 61, y, 106, 20, FILTERS[filter], () -> {
-            filter = (filter + 1) % FILTERS.length; page = 0; refresh();
+        action(x + searchW + 4, y, 61, 20, "Search", this::refresh);
+        action(x + searchW + 69, y, w - searchW - 69, 20, "Clear", () -> {
+            query = "";
+            page = 0;
+            refresh();
         });
-        List<ShatsuCatalog.Entry> hits = ShatsuCatalog.all().stream()
-            .filter(e -> (filter == 0 || FILTERS[filter].equals(e.category()))
-                && (query.isBlank() || e.id().toLowerCase(Locale.ROOT)
-                    .contains(query.toLowerCase(Locale.ROOT)))).toList();
-        int perPage = Math.max(1, Math.min(5, (height - y - 111) / 45));
+
+        int categoryW = w - 107;
+        action(x, y + 24, categoryW, 20, LIBRARY_FILTERS[filter], () -> {
+            filter = (filter + 1) % LIBRARY_FILTERS.length;
+            page = 0;
+            refresh();
+        });
+        action(x + categoryW + 4, y + 24, w - categoryW - 4, 20,
+            favoritesOnly ? "★ Favorites" : "☆ Favorites", () -> {
+                favoritesOnly = !favoritesOnly;
+                page = 0;
+                refresh();
+            });
+
+        List<ShatsuCatalog.Entry> hits = matchingSounds();
+        int listY = y + 58;
+        int footer = height - 61;
+        int perPage = Math.max(1, Math.min(8, (footer - listY - 4) / 27));
         int maxPage = Math.max(0, (hits.size() - 1) / perPage);
         page = Math.max(0, Math.min(page, maxPage));
+
         for (int i = 0; i < perPage; i++) {
             int index = page * perPage + i;
             if (index >= hits.size()) break;
-            ShatsuCatalog.Entry item = hits.get(index);
-            String id = item.id();
-            int yy = y + 27 + i * 45;
-            int labelW = Math.max(85, w - 167);
-            String label = id.length() > 32 ? id.substring(0, 29) + "..." : id;
-            action(x, yy, labelW, 20, label, () -> preview(id));
-            action(x + labelW + 4, yy, 45, 20, "Play", () -> preview(id));
-            boolean enabled = !Boolean.FALSE.equals(ShatsuConfig.current().enabled.get(id));
-            action(x + labelW + 52, yy, 48, 20, enabled ? "ON" : "OFF", () -> {
-                ShatsuConfig.current().setEnabled(id, !enabled); refresh();
+            ShatsuCatalog.Entry entry = hits.get(index);
+            String id = entry.id();
+            int yy = listY + i * 27;
+            int labelW = w - 113;
+            String label = shortened(friendlySoundName(id), Math.max(16, labelW / 6));
+            action(x, yy, labelW, 22, label, () -> {
+                selectedSoundId = id;
+                ShatsuConfig.save();
+                refresh();
             });
-            action(x + labelW + 104, yy, 62, 20, "Reset", () -> {
-                ShatsuConfig.current().resetEvent(id); refresh();
-            });
-            var cfg = ShatsuConfig.current();
-            float volume = cfg.eventVolumes.getOrDefault(id, 1f);
-            float pitch = cfg.eventPitches.getOrDefault(id, 1f);
-            int q = w / 6;
-            action(x, yy + 21, q - 2, 20, "Vol -", () -> {
-                cfg.setVolume(id, volume - .1f); refresh();
-            });
-            action(x + q, yy + 21, q - 2, 20, Math.round(volume * 100) + "%", () -> preview(id));
-            action(x + 2 * q, yy + 21, q - 2, 20, "Vol +", () -> {
-                cfg.setVolume(id, volume + .1f); refresh();
-            });
-            action(x + 3 * q, yy + 21, q - 2, 20, "Pitch -", () -> {
-                cfg.setPitch(id, pitch - .05f); refresh();
-            });
-            action(x + 4 * q, yy + 21, q - 2, 20, String.format(Locale.ROOT, "%.2fx", pitch),
-                () -> {cfg.setPitch(id, 1f); refresh();});
-            action(x + 5 * q, yy + 21, w - 5 * q, 20, "Pitch +", () -> {
-                cfg.setPitch(id, pitch + .05f); refresh();
-            });
+            action(x + labelW + 4, yy, 47, 22, "Play", () -> preview(id));
+            boolean favorite = ShatsuConfig.current().isFavorite(id);
+            action(x + labelW + 55, yy, w - labelW - 55, 22,
+                favorite ? "★" : "☆", () -> {
+                    ShatsuConfig.current().toggleFavorite(id);
+                    refresh();
+                });
         }
-        int footer = Math.min(height - 53, y + 30 + perPage * 45);
-        action(x, footer, 80, 19, "< Back", () -> { page = Math.max(0, page - 1); refresh(); });
-        action(x + 84, footer, w - 170, 19,
-            (page + 1) + "/" + (maxPage + 1) + "  /  " + hits.size() + " sounds",
-            () -> {page = 0; refresh();});
-        action(x + w - 82, footer, 82, 19, "Next >", () -> {
-            page = Math.min(maxPage, page + 1); refresh();
+
+        action(x, footer, 84, 20, "Previous", () -> {
+            page = Math.max(0, page - 1);
+            refresh();
+        });
+        action(x + w - 84, footer, 84, 20, "Next", () -> {
+            page = Math.min(maxPage, page + 1);
+            refresh();
+        });
+        // Result count and page number are displayed as non-clickable text.
+    }
+
+    private void librarySoundDetail(int x, int y, int w, String id) {
+        ShatsuConfig cfg = ShatsuConfig.current();
+        int step = Math.max(21, Math.min(32, (height - y - 80) / 5));
+        int half = (w - 6) / 2;
+        action(x, y, w, 20, shortened("< Back  |  " + friendlySoundName(id), Math.max(32, w / 6)), () -> {
+            ShatsuConfig.save();
+            selectedSoundId = null;
+            if (activePreview != null) stopPreview();
+            refresh();
+        });
+
+        action(x, y + step, half, 20, "Play sound", () -> preview(id));
+        action(x + half + 6, y + step, w - half - 6, 20, "Stop", this::stopPreview);
+        boolean enabled = !Boolean.FALSE.equals(cfg.enabled.get(id));
+        action(x, y + step * 2, half, 20, enabled ? "Enabled" : "Muted", () -> {
+            if (enabled && activePreview != null) stopPreview();
+            cfg.setEnabled(id, !enabled);
+            cfg.preset = "Custom";
+            ShatsuConfig.save();
+            refresh();
+        });
+        action(x + half + 6, y + step * 2, w - half - 6, 20,
+            cfg.isFavorite(id) ? "★ Favorited" : "☆ Favorite", () -> {
+                cfg.toggleFavorite(id);
+                refresh();
+            });
+
+        addRenderableWidget(new ShatsuLevelSlider(x, y + step * 3, w,
+            "Sound volume", cfg.eventVolumes.getOrDefault(id, 1f), v -> {
+                cfg.eventVolumes.put(id, (float) v);
+                cfg.preset = "Custom";
+            }));
+        addRenderableWidget(new ShatsuPitchSlider(x, y + step * 4, w,
+            cfg.eventPitches.getOrDefault(id, 1f), v -> {
+                cfg.eventPitches.put(id, (float) v);
+                cfg.preset = "Custom";
+            }));
+        action(x, y + step * 5, w, 20, "Restore this sound's defaults", () -> {
+            if (activePreview != null) stopPreview();
+            cfg.resetEvent(id);
+            cfg.preset = "Custom";
+            ShatsuConfig.save();
+            status = "Sound settings restored";
+            refresh();
         });
     }
+
     /** Average for display only. Adjusting a mixed group intentionally unifies its levels. */
     private float volumeGroupLevel(ShatsuConfig cfg, String[] keys) {
         float sum = 0f;
@@ -314,6 +413,23 @@ public final class ShatsuScreen extends Screen {
         }
     }
 
+    /** Per-sound pitch ranges from 0.50x to 2.00x. */
+    private static final class ShatsuPitchSlider extends AbstractSliderButton {
+        private final DoubleConsumer update;
+        ShatsuPitchSlider(int x, int y, int w, float initial, DoubleConsumer update) {
+            super(x, y, w, 20, Component.literal("Pitch"),
+                Math.max(0, Math.min(1, (initial - .5f) / 1.5)));
+            this.update = update;
+            updateMessage();
+        }
+        @Override protected void updateMessage() {
+            setMessage(Component.literal(String.format(Locale.ROOT, "Pitch   %.2fx", .5 + value * 1.5)));
+        }
+        @Override protected void applyValue() {
+            update.accept(.5 + value * 1.5);
+        }
+    }
+
     /** Shatsu music-app colors, adapted to Minecraft's native UI renderer. */
     @Override public void extractBackground(GuiGraphicsExtractor g, int mx, int my, float partialTick) {
         int px = panelX(), w = panelWidth();
@@ -347,6 +463,16 @@ public final class ShatsuScreen extends Screen {
         g.text(font, "SOUNDS  •  FABRIC 26.3", x + 101, 18, 0xFFC3A9E8);
         if (tab == 0)
             g.text(font, "YOUR SOUND, YOUR WAY", x + 8, 70, 0xFFCFB6FA);
+        if (tab == 3 && selectedSoundId == null) {
+            List<ShatsuCatalog.Entry> hits = matchingSounds();
+            int listY = 65 + 58;
+            int footer = height - 61;
+            int perPage = Math.max(1, Math.min(8, (footer - listY - 4) / 27));
+            int maxPage = Math.max(0, (hits.size() - 1) / perPage);
+            g.text(font, hits.size() + " sounds", x + 8, 113, 0xFFC3A9E8);
+            g.text(font, (page + 1) + " / " + (maxPage + 1),
+                x + Math.max(90, panelWidth() / 2 - 16), height - 57, 0xFFC3A9E8);
+        }
         if (tab == 2) {
             g.text(font, "SOUND CATEGORIES", x + 8, 92, 0xFFCFB6FA);
             int top = 65 + 42;
@@ -391,7 +517,7 @@ public final class ShatsuScreen extends Screen {
             }
             if (activePreview != null) manager.stop(activePreview);
             activePreview = SimpleSoundInstance.forUI(
-                SoundEvent.createVariableRangeEvent(key), ShatsuConfig.current().pitch(id), .6f);
+                SoundEvent.createVariableRangeEvent(key), ShatsuConfig.current().pitch(id), 1.0f);
             manager.play(activePreview);
             status = "Playing " + id;
         } catch (Exception ex) {
