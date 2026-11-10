@@ -517,7 +517,7 @@ public final class ShatsuScreen extends Screen {
             }
             if (activePreview != null) manager.stop(activePreview);
             activePreview = SimpleSoundInstance.forUI(
-                SoundEvent.createVariableRangeEvent(key), ShatsuConfig.current().pitch(id), 1.0f);
+                SoundEvent.createVariableRangeEvent(key), 1.0f, 1.0f);
             manager.play(activePreview);
             status = "Playing " + id;
         } catch (Exception ex) {
