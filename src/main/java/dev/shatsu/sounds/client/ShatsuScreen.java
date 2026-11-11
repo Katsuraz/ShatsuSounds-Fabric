@@ -71,7 +71,7 @@ public final class ShatsuScreen extends Screen {
     };
 
     public ShatsuScreen(Screen previous) {
-        super(Component.literal("Shatsu Sounds"));
+        super(Component.literal("Pixel Eco Sound Studio"));
         this.previous = previous;
     }
     private int panelWidth() { return Math.min(620, Math.max(280, width - 22)); }
@@ -132,6 +132,10 @@ public final class ShatsuScreen extends Screen {
         action(x, y + 24, w, 30, "Presets   /   " + cfg.preset, () -> tab(1));
         action(x, y + 64, w, 30, "Volume   /   " + Math.round(cfg.master * 100) + "%", () -> tab(2));
         action(x, y + 104, w, 30, "Sound library   /   Browse, preview & edit", () -> tab(3));
+        action(x, y + 144, w, 30,
+            "Pixel Eco Original Sounds   /   " + (PixelEcoPackSwitch.isEnabled(minecraft) ? "ON" : "OFF - Vanilla"),
+            () -> { PixelEcoPackSwitch.setEnabled(minecraft,
+                      !PixelEcoPackSwitch.isEnabled(minecraft)); refresh(); });
     }
 
     /** Friendly names keep raw technical IDs out of the everyday library UI. */
