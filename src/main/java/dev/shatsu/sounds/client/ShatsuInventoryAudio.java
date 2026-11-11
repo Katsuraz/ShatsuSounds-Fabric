@@ -34,7 +34,8 @@ public final class ShatsuInventoryAudio {
 
     public static void clicked(Slot slot, ItemStack carried, ContainerInput type, int mouseButton) {
         hookHits++;
-        if (!ShatsuConfig.current().inventoryAudioEnabled || type == null) return;
+        if (!PixelEcoPackSwitch.isEnabled(Minecraft.getInstance())
+                || !ShatsuConfig.current().inventoryAudioEnabled || type == null) return;
         ItemStack cursor = carried == null ? ItemStack.EMPTY : carried;
         ItemStack inSlot = slot == null ? ItemStack.EMPTY : slot.getItem();
         if (cursor.isEmpty() && inSlot.isEmpty()) return;
