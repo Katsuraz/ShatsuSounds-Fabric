@@ -2,10 +2,11 @@
   "schemaVersion": 1,
   "id": "shatsusounds",
   "version": "${version}",
-  "name": "Shatsu Sounds",
-  "description": "The Shatsu sound profile manager for Minecraft 26.3",
+  "name": "Pixel Eco — Shatsu Retro Edition",
+  "description": "Shatsu's original Fabric sound mod and integrations, transformed into warm arcade-fantasy retro audio.",
   "authors": [
-    "Katsuraz"
+    "Katsuraz",
+    "Pixel Eco Retro Edition"
   ],
   "license": "LicenseRef-Shatsu-Audio-See-Docs",
   "environment": "client",
