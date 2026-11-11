@@ -41,6 +41,9 @@ public final class PixelEcoPackSwitch {
             System.err.println("[Pixel Eco] Missing source mod container");
             return;
         }
+        System.out.println("[Pixel Eco] Bundled SFX pack source: " +
+            container.get().findPath("resourcepacks/" + NAME + "/pack.mcmeta"));
+        System.out.println("[Pixel Eco] Mod container roots: " + container.get().getRootPaths());
         installed = ResourceLoader.registerBuiltinPack(
             Identifier.fromNamespaceAndPath("shatsusounds", NAME),
             container.get(), PackActivationType.DEFAULT_ENABLED);
