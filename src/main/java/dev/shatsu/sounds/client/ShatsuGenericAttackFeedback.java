@@ -31,7 +31,8 @@ public final class ShatsuGenericAttackFeedback {
             boolean pressed = client.options.keyAttack.isDown() && client.gui.screen() == null;
             boolean start = pressed && !previouslyPressed;
             previouslyPressed = pressed;
-            if (!start || client.player == null || client.player.isSpectator()
+            if (!PixelEcoPackSwitch.isEnabled(client) || !start
+                    || client.player == null || client.player.isSpectator()
                     || client.hitResult == null
                     || client.hitResult.getType() == HitResult.Type.BLOCK) {
                 return; // no duplicate impacts when mining blocks
