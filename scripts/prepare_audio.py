@@ -179,6 +179,11 @@ def main():
     # Modify only generated sound assets; retain Shatsu's own sound routing.
     from retro_transform import apply as apply_retro
     retro_report = apply_retro(root)
+    # Post-process only the 19 Minecraft interaction events identified as
+    # reusing inappropriate Shatsu textures (hoe/shovel, tools and compost).
+    from retro_interaction_polish import apply as polish_interactions
+    retro_interactions = polish_interactions(root)
+    assert retro_interactions["new_audio_variants"] == 57
     count = generate_catalog(root)
     validate(root)
     print("Pixel Eco Retro: " + str(retro_report["new_arcade_explosion_variants"]) + " new explosion clips.")
