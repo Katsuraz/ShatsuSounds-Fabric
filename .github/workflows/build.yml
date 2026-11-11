@@ -77,6 +77,34 @@ jobs:
           assert report["trident_reference"]["reference_path"] in names, report["trident_reference"]
           print("Shatsu original Java hooks, Trident reference, and companion integrations preserved")
           PY
+      - name: Verify Alpha2 material-specific retro audio and variation safety
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, numpy as np, soundfile as sf
+          root=pathlib.Path("build/generated/shatsu-assets")
+          qa=json.loads((root/"pixeleco_interactions_qa.json").read_text())
+          assert qa["modified_event_count"]==19
+          assert qa["new_audio_variants"]==57
+          sounds=json.loads((root/"assets/minecraft/sounds.json").read_text())
+          paths=[]
+          for event,kind in qa["events"].items():
+              assert event in sounds
+              refs=sounds[event]["sounds"]
+              assert len(refs)==3 and sounds[event]["replace"]
+              for entry in refs:
+                  assert entry["name"].startswith("pixelecoretro:physical/"+kind+"/")
+                  rel=entry["name"].split(":",1)[1]
+                  path=root/"assets/pixelecoretro/sounds"/(rel+".ogg")
+                  assert path.is_file(),path
+                  paths.append(path)
+                  audio,rate=sf.read(path,dtype="float32")
+                  assert rate==44100 and np.all(np.isfinite(audio))
+                  assert .001<float(np.sqrt(np.mean(audio**2)))<.12
+                  assert float(np.max(np.abs(audio)))<.6
+          assert len(paths)==len(set(paths))==57
+          assert [x["name"] for x in sounds["item.hoe.till"]["sounds"]] != [x["name"] for x in sounds["item.shovel.flatten"]["sounds"]]
+          print("Alpha2: 19 distinct events, 57 valid unclipped audio variations; hoe and shovel no longer share sounds.")
+          PY
       - name: Test block hits and non-special item fallback
         run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
       - name: Verify repaired sounds are inside the actual JAR
@@ -108,12 +136,13 @@ jobs:
           name: Pixel-Eco-Shatsu-Retro-Audio-QA-and-Preview
           path: |
             build/generated/shatsu-assets/pixeleco_retro_report.json
+            build/generated/shatsu-assets/pixeleco_interactions_qa.json
             build/generated/pixel-eco-retro-preview.mp3
             build/generated/pixel-eco-retro-preview.json
           if-no-files-found: warn
       - name: Label asset state
         id: assets
-        run: echo "artifact=PixelEco-Retro-v0.6.6-REAL-SHATSU-BASED-FABRIC26.3-ALPHA" >> "$GITHUB_OUTPUT"
+        run: echo "artifact=PixelEco-Retro-v0.6.6-Alpha2-REAL-SHATSU-FABRIC26.3" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.assets.outputs.artifact }}
