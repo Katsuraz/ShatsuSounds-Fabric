@@ -3,6 +3,8 @@ package dev.shatsu.sounds;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.fabricmc.loader.api.FabricLoader;
+import dev.shatsu.sounds.client.PixelEcoPackSwitch;
+import net.minecraft.client.Minecraft;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -80,6 +82,10 @@ public final class ShatsuConfig {
         return "other";
     }
     public float multiplier(String id) {
+        // Pixel Eco OFF switches OFF the overriding resource pack. Let vanilla
+        // and other mods' original sounds play at their native gain; a zero
+        // master slider must never make "vanilla restored" silent.
+        if (!PixelEcoPackSwitch.isEnabled(Minecraft.getInstance())) return 1f;
         // Do not modify arbitrary other mods or vanilla mob-voice sounds.
         if (!ShatsuCatalog.contains(id)) return 1f;
         if (Boolean.FALSE.equals(enabled.get(id))) return 0f;
