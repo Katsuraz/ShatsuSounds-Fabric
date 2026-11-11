@@ -37,13 +37,16 @@ jobs:
           MESA_GLSL_VERSION_OVERRIDE: "330"
         run: |
           set +e
-          timeout -s INT -k 8s 130s xvfb-run -a -s '-screen 0 1280x800x24' \
+          timeout -s INT -k 8s 70s xvfb-run -a -s '-screen 0 1280x800x24' \
             gradle runClient --no-daemon --stacktrace \
               -x prepareShatsuAssets -x assembleShatsuRecordedAudio \
               > pixel-eco-client.log 2>&1
           status=$?
           echo "exit_status=$status" > pixel-eco-smoke-summary.txt
           echo "exit status $status"
+          echo "----- Builtin pack directory after Gradle resource processing -----"
+          ls -la build/resources/main/resourcepacks/pixeleco_original/ || true
+          find build/resources/main/resourcepacks/pixeleco_original/ -maxdepth 5 -type f -print || true
           grep -Ei '\[Pixel Eco\]|MixinApplyError|InvalidInjectionException|ClassNotFoundException|GLFW|Failed to create backend' pixel-eco-client.log | tail -65 || true
           # The source checkout does NOT include the v0.1.4 cumulative audio.
           # This checks the Java/Mixin bootstrap and builtin pack registration,
