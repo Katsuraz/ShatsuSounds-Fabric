@@ -15,6 +15,7 @@ public final class ShatsuThrowableImpactAudio {
 
     public static void onImpact(Entity projectile, String eventId) {
         Minecraft client = Minecraft.getInstance();
+        if (!PixelEcoPackSwitch.isEnabled(client)) return;
         if (client.level == null || client.player == null
                 || projectile.level() != client.level) return;
         Identifier id = Identifier.parse(eventId);
