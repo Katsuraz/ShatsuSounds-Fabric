@@ -5,6 +5,20 @@
 **Version:** `0.6.6-retro-alpha.1`  
 **Status:** Built and offline-audited, **not in-world gameplay tested**.
 
+## Alpha.2 — Real Shatsu-based tactile interaction improvements
+
+**Changes:** 19 existing Minecraft sound events that previously reused identical or inappropriate recordings now point to 57 original deterministic retro-tactile variations (three per action). Hoe tilling is distinct from shovel path flattening; axe strip, scrape, and wax removal are distinct from each other; brush, bone meal, flint and steel, shears, composter stages and book actions have material-specific sounds.
+
+The update uses Shatsu's generated audio as a source texture, plus newly synthesized layers. It does **not** alter any Shatsu Java class, existing OGG clip, Clangor mapping, Sounds mapping, Custom Block Sounds mapping, or previous retro explosion family. The user's 2,473 earlier retro-edition OGG clips are all preserved byte-for-byte. The playable Alpha.2 JAR has 2,530 OGG clips.
+
+Quality controls: 44.1-kHz mono OGG Vorbis, limited peak amplitude, restrained high-frequency energy, moderate duration/volume, and three different variations per event. Automatic checks found no missing custom asset references. Actual Minecraft launch, mod interactions and subjective long-session listening have **not** been tested.
+
+The script `scripts/retro_interaction_polish.py` runs automatically after `retro_transform.py` in the original Shatsu audio preparation pipeline; the GitHub workflow checks all 19 event pools and 57 resulting OGGs.
+
+**Install:** Replace the previous Pixel Eco Retro JAR in `mods` with Alpha.2; do not keep standard Shatsu installed simultaneously (same `shatsusounds` mod ID). This is still built on the Shatsu 0.6.6 feature branch using the older repository sound archive, not the uncommitted cumulative Shatsu Alpha.10 audio JAR.
+
+---
+
 ## What this actually is
 
 A retro audio transformation of the *real Shatsu mod*, built on the existing `v066/immersive-ui-audio` source branch. It preserves the original Shatsu UI, Mod Menu support, audio mixer, configuration, generic attack hooks, inventory/audio client hooks, and shipped integrations with Clangor, Sounds and Custom Block Sounds. This is not a recreation of Shatsu from scratch or a separately operating resource-pack manager.
