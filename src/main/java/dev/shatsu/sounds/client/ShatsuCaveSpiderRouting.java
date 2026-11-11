@@ -34,6 +34,7 @@ public final class ShatsuCaveSpiderRouting {
     public static boolean entitySound(int entityId, SoundEvent sound, SoundSource source,
             float volume, float pitch) {
         Minecraft client = Minecraft.getInstance();
+        if (!PixelEcoPackSwitch.isEnabled(client)) return false;
         ClientLevel world = client.level;
         if (world == null) return false;
         Entity entity = world.getEntity(entityId);
@@ -51,6 +52,7 @@ public final class ShatsuCaveSpiderRouting {
     public static boolean positionedSound(double x, double y, double z,
             SoundEvent sound, SoundSource source, float volume, float pitch) {
         Minecraft client = Minecraft.getInstance();
+        if (!PixelEcoPackSwitch.isEnabled(client)) return false;
         ClientLevel world = client.level;
         if (world == null) return false;
         Identifier target = replacement(sound);
