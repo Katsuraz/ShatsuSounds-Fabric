@@ -11,7 +11,6 @@ import net.fabricmc.fabric.api.resource.v1.pack.PackActivationType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.repository.PackRepository;
 
@@ -48,11 +47,9 @@ public final class PixelEcoPackSwitch {
             while (key.consumeClick()) {
                 boolean desired = !isEnabled(client);
                 boolean ok = setEnabled(client, desired);
-                if (client.player != null) {
-                    client.player.displayClientMessage(Component.literal(ok
-                            ? "Pixel Eco sounds: " + (desired ? "ON" : "OFF (vanilla restored)")
-                            : "Pixel Eco: sound pack not available"), true);
-                }
+                System.out.println("[Pixel Eco] " +
+                    (ok ? "SFX switched " + (desired ? "ON" : "OFF (vanilla)")
+                        : "SFX pack could not be switched"));
             }
         });
     }
