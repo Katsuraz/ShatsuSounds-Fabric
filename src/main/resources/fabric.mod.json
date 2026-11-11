@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "shatsusounds",
   "version": "${version}",
-  "name": "Pixel Eco — Shatsu Retro Edition",
-  "description": "Shatsu 0.6.6 mechanics, Sound Studio and mod integrations with warm arcade-fantasy retro audio.",
+  "name": "Pixel Eco — Original Arcade-Fantasy",
+  "description": "Original retro-fantasy sound overhaul for Minecraft 26.3, with a fully disableable audio pack and Shatsu-derived tool/UI hooks.",
   "authors": [
     "Katsuraz",
-    "Pixel Eco Retro Edition"
+    "Pixel Eco"
   ],
   "license": "LicenseRef-Shatsu-Audio-See-Docs",
   "environment": "client",
