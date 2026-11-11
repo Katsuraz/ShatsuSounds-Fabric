@@ -25,7 +25,7 @@ public final class ShatsuShieldReady {
                 && client.player.isUsingItem()
                 && client.player.getUseItem().is(Items.SHIELD);
 
-            if (active && !previous && cooldown == 0
+            if (PixelEcoPackSwitch.isEnabled(client) && active && !previous && cooldown == 0
                     && client.getSoundManager().getSoundEvent(ID) != null) {
                 client.getSoundManager().play(SimpleSoundInstance.forUI(EVENT, 1.0f, 0.55f));
                 cooldown = 7;
