@@ -1,0 +1,70 @@
+name: Pixel Eco 26.3 real Minecraft client bootstrap smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [pixel-eco-original-v015-runtime]
+    paths:
+      - '.github/workflows/pixel-eco-client-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  client-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 17
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.8.1'
+
+      - name: Install virtual display graphics dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -qq -y xvfb libgl1 libgl1-mesa-dri libx11-6 libxi6 libxrandr2 libxcursor1 libxinerama1
+
+      - name: Attempt real Minecraft 26.3 Fabric client bootstrap
+        shell: bash
+        env:
+          LIBGL_ALWAYS_SOFTWARE: "1"
+          MESA_GL_VERSION_OVERRIDE: "3.3"
+          MESA_GLSL_VERSION_OVERRIDE: "330"
+        run: |
+          set +e
+          timeout -s INT -k 8s 130s xvfb-run -a -s '-screen 0 1280x800x24' \
+            gradle runClient --no-daemon --stacktrace \
+              -x prepareShatsuAssets -x assembleShatsuRecordedAudio \
+              > pixel-eco-client.log 2>&1
+          status=$?
+          echo "exit_status=$status" > pixel-eco-smoke-summary.txt
+          echo "exit status $status"
+          grep -Ei '\[Pixel Eco\]|MixinApplyError|InvalidInjectionException|ClassNotFoundException|GLFW|Failed to create backend' pixel-eco-client.log | tail -65 || true
+          # The source checkout does NOT include the v0.1.4 cumulative audio.
+          # This checks the Java/Mixin bootstrap and builtin pack registration,
+          # NOT actual audible gameplay.
+          grep -Fq '[Pixel Eco] Built-in retro SFX pack registered: true' pixel-eco-client.log
+          initialized=$?
+          if [ "$initialized" -ne 0 ]; then
+            echo 'FAILED: Pixel Eco client initializer did not register its built-in pack'
+            exit 1
+          fi
+          if grep -Eq 'MixinApplyError|InvalidInjectionException|MixinTransformerError|NoClassDefFoundError|ClassNotFoundException' pixel-eco-client.log; then
+            echo 'FAILED: Mixin/class initialization error during client startup'
+            exit 1
+          fi
+          echo 'PASS: Pixel Eco 26.3 Fabric client bootstrap and built-in pack registration'
+          echo 'IMPORTANT: No actual in-game playback or toggle testing performed.'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: PixelEco-v0.1.5-Real-Client-Smoke-Logs
+          path: |
+            pixel-eco-client.log
+            pixel-eco-smoke-summary.txt
+          if-no-files-found: warn
