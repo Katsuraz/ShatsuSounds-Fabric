@@ -56,6 +56,10 @@ public final class ShatsuCombatChargeFeedback {
     }
 
     private static void tick(Minecraft client) {
+        if (!PixelEcoPackSwitch.isEnabled(client)) {
+            reset();
+            return;
+        }
         if (client.level == null || client.player == null
                 || client.player.isSpectator() || client.gui.screen() != null
                 || !client.player.isUsingItem()) {
