@@ -1,7 +1,7 @@
-name: Shatsu Sounds Fabric 26.3 - Studio Build
+name: Pixel Eco Retro Edition — Build from Real Shatsu
 on:
   push:
-    branches: [main]
+    branches: [pixel-eco-retro-rebuild]
     paths:
       - 'src/**'
       - 'audio/shatsu_v03/**'
@@ -47,8 +47,36 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg
           ffmpeg -version | head -1
-      - name: Build the mod with repaired Shatsu audio
+      - name: Install retro audio DSP libraries
+        run: python3 -m pip install --disable-pip-version-check numpy scipy soundfile
+      - name: Build the mod with original Shatsu code and retro audio
         run: gradle build --stacktrace
+      - name: Make actual-audio preview from built retro library
+        run: python3 scripts/retro_preview.py build/generated/shatsu-assets build/generated/pixel-eco-retro-preview.mp3
+      - name: Verify Shatsu's original code and mod integration remain intact
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,zipfile
+          root=Path("build/generated/shatsu-assets")
+          report=json.loads((root/"pixeleco_retro_report.json").read_text())
+          assert report["base_shatsu_ogg_count"]>=1500
+          assert sum(n for cat,n in report["transformed_by_category"].items() if cat!="preserved")>=1000
+          assert report["new_arcade_explosion_variants"]>=6
+          assert "item.trident.throw" in json.loads((root/"assets/minecraft/sounds.json").read_text())
+          jar=next(x for x in Path("build/libs").glob("*.jar") if "-sources" not in x.name)
+          with zipfile.ZipFile(jar) as z:
+            names=set(z.namelist())
+            for must in ("assets/clangor/sounds.json",
+                  "assets/customblocksounds/config/blockmap.json",
+                  "assets/minecraft/sounds/items/shatsu_v7_totem_of_undying.json",
+                  "assets/shatsufresh/sounds/premium/trident/throw/1.ogg",
+                  "dev/shatsu/sounds/client/ShatsuScreen.class",
+                  "dev/shatsu/sounds/client/ShatsuGenericAttackFeedback.class",
+                  "dev/shatsu/sounds/mixin/SoundEngineMixin.class"):
+              assert must in names, must
+          print("Shatsu original Java hooks and three companion integration resources preserved")
+          PY
       - name: Test block hits and non-special item fallback
         run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
       - name: Verify repaired sounds are inside the actual JAR
@@ -74,9 +102,18 @@ jobs:
                   assert sum(x.endswith('.ogg') for x in names) >= 2300, (jar, 'missing OGGs')
                   print('JAR validated:', jar, len(names), 'packaged files')
           PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Pixel-Eco-Shatsu-Retro-Audio-QA-and-Preview
+          path: |
+            build/generated/shatsu-assets/pixeleco_retro_report.json
+            build/generated/pixel-eco-retro-preview.mp3
+            build/generated/pixel-eco-retro-preview.json
+          if-no-files-found: warn
       - name: Label asset state
         id: assets
-        run: echo "artifact=ShatsuSounds-v0.3.0-ALPHA-RECORDED-AUDIO-UI-UNTESTED" >> "$GITHUB_OUTPUT"
+        run: echo "artifact=PixelEco-Retro-v0.1.0-REAL-SHATSU-BASED-FABRIC26.3-ALPHA" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.assets.outputs.artifact }}
