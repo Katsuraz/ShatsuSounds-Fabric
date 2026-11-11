@@ -176,8 +176,12 @@ def main():
     polish(root)
     from apply_recorded_audio import update as apply_recorded
     apply_recorded(root, Path(__file__).resolve().parents[1] / 'build/generated/shatsu-v03-audio.zip')
+    # Modify only generated sound assets; retain Shatsu's own sound routing.
+    from retro_transform import apply as apply_retro
+    retro_report = apply_retro(root)
     count = generate_catalog(root)
     validate(root)
+    print("Pixel Eco Retro: " + str(retro_report["new_arcade_explosion_variants"]) + " new explosion clips.")
     print(f'Shatsu repair: {raised}/{processed} quiet hit OGGs normalized; '
           f'{changed}/1047 block hit volumes improved; 10 generic/rods hit events repaired; {count} catalog entries.')
 
