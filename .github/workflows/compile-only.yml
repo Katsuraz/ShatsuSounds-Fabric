@@ -1,7 +1,7 @@
 name: Shatsu Java compile-only validation
 on:
   push:
-    branches: [ui/presets-simple-shatsu-music, v066/immersive-ui-audio]
+    branches: [ui/presets-simple-shatsu-music, v066/immersive-ui-audio, pixel-eco-original-v011]
     paths:
       - 'src/main/java/**'
       - 'build.gradle'
@@ -22,10 +22,16 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.8.1'
-      - name: Compile Java only (no audio processing needed)
+      - name: Compile Pixel Eco switch with Fabric 26.3
         run: gradle compileJava --stacktrace --no-daemon
+      - name: Confirm sound pack master switch classes
+        run: |
+          test -f build/classes/java/main/dev/shatsu/sounds/client/PixelEcoPackSwitch.class
+          test -f build/classes/java/main/dev/shatsu/sounds/client/ShatsuClient.class
+          test -f build/classes/java/main/dev/shatsu/sounds/client/ShatsuScreen.class
+          test -f build/classes/java/main/dev/shatsu/sounds/ShatsuConfig.class
       - uses: actions/upload-artifact@v4
         with:
-          name: Shatsu-Java-Classes-26.3
+          name: PixelEco-v0.1.1-Fabric-26.3-Compiled-Classes
           path: build/classes/java/main/**
           if-no-files-found: error
