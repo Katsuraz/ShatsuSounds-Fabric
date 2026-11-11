@@ -32,6 +32,7 @@ public final class ShatsuBedFeedback {
         }
         if (sleeping == previouslySleeping) return;
         previouslySleeping = sleeping;
+        if (!PixelEcoPackSwitch.isEnabled(client)) return;
         Identifier id = sleeping ? SLEEP : WAKE;
         var manager = client.getSoundManager();
         var sound = manager.getSoundEvent(id);
