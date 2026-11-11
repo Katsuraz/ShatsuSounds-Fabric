@@ -1,7 +1,7 @@
-name: Shatsu Java compile-only validation
+name: Pixel Eco 26.3 runtime sound-hook compilation
 on:
   push:
-    branches: [ui/presets-simple-shatsu-music, v066/immersive-ui-audio, pixel-eco-original-v011]
+    branches: [ui/presets-simple-shatsu-music, v066/immersive-ui-audio, pixel-eco-original-v011, pixel-eco-original-v015-runtime]
     paths:
       - 'src/main/java/**'
       - 'build.gradle'
@@ -32,6 +32,6 @@ jobs:
           test -f build/classes/java/main/dev/shatsu/sounds/ShatsuConfig.class
       - uses: actions/upload-artifact@v4
         with:
-          name: PixelEco-v0.1.1-Fabric-26.3-Compiled-Classes
+          name: PixelEco-v0.1.5-Fabric-26.3-Compiled-Classes
           path: build/classes/java/main/**
           if-no-files-found: error
