@@ -70,12 +70,12 @@ jobs:
             for must in ("assets/clangor/sounds.json",
                   "assets/customblocksounds/config/blockmap.json",
                   "assets/minecraft/sounds/items/shatsu_v7_totem_of_undying.json",
-                  "assets/shatsufresh/sounds/premium/trident/throw/1.ogg",
                   "dev/shatsu/sounds/client/ShatsuScreen.class",
                   "dev/shatsu/sounds/client/ShatsuGenericAttackFeedback.class",
                   "dev/shatsu/sounds/mixin/SoundEngineMixin.class"):
               assert must in names, must
-          print("Shatsu original Java hooks and three companion integration resources preserved")
+          assert report["trident_reference"]["reference_path"] in names, report["trident_reference"]
+          print("Shatsu original Java hooks, Trident reference, and companion integrations preserved")
           PY
       - name: Test block hits and non-special item fallback
         run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
